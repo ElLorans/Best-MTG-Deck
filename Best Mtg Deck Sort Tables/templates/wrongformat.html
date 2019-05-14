@@ -1,0 +1,18 @@
+{% extends "layout.html" %}
+{% block content %}
+<body>
+<div class="jumbotron">
+<h1>OOPSS!</h1>
+
+<h2>Something went wrong!</h2>
+</div>
+<div class="page-header">
+</div>
+				<div class="well">
+{{ error }}
+<p>is in the <b>wrong format</b>.</p>
+<p>Click<a type="button" class="btn btn-link" onclick="goBack()"><font color="light blue">Go back</font></a><script>function goBack(){window.history.back();}</script> to try again</p>
+</div>
+
+  </body>
+{% endblock content %}

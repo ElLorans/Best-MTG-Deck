@@ -1,0 +1,86 @@
+{% extends "layout.html" %}
+{% block content %}
+	<table class="sortable" id="customers">
+		<tr>
+			<th>{{ deck.formato }}</th>
+			<th>{{ deck.name }}</th>
+			<th>Value you own: {{ deck.value }} %</th>
+			</tr>
+			<tr>
+			<th>Tot Price (€)</th>
+			<th>Your Price (€)</th>
+			<th>Number of cards you need</th>
+		</tr>
+		<tr>
+			<td>{{ deck.price }}</td>
+			<td>{{ deck.your_price }}</td>
+			<td>{{ deck.cards_needed }} / {{ deck.cards_total }}</td>
+		</tr>
+	</table>
+	<br>
+	
+	<table class="sortable" id="customers">
+		<tr>
+			<th>Card</th>
+			<th># copies you have / # copies you need</th>
+			<th>Price For You</th>
+			<th>Total Price</th>
+			{% if deck.formato == "Standard" or deck.formato == "Standard Challenger Decks" %}
+				<th>Wildcards</th>
+			{% endif %}
+		</tr>
+		
+		{% for card in deck.list %}
+			<tr>
+				<td>
+				<a class="simple" href="https://deckbox.org/mtg/ {{ card.name }} " > {{ card.name }} </a>
+				</td>
+				<td>
+				{{ card.copies_owned }} / {{ card.copies_total }}
+				</td>
+				<td>
+				{{ card.price_for_you }}
+				</td>
+				<td>
+				{{ card.tot_price }}
+				</td>
+				{% if deck.formato == "Standard" or deck.formato == "Standard Challenger Decks" %}
+					<td>{{ card.wildcards }}</td>
+				{% endif %}
+			</tr>
+		{% endfor %}
+	</table>
+	<br>
+	<div class="well">
+		{% if deck.formato == "Standard" or deck.formato == "Standard Challenger Decks" %} 
+			<h3>MTGA:</h3>
+			<h5>You need</h5>
+			{% for type in deck.wildcards %}
+				{{ type }}
+				<br>
+			{% endfor %}
+			<h4>Wildcards</h4>
+			<br>
+			To import this deck, copy the following list. Then, open MTG Arena and, on Decks, click on 'Import Deck'. Arena language must be set to English.
+			<br>
+			{% for card in deck.list %}
+				{{ card.copies_total }} {{ card.name }} {{ card.arena }}
+				<br>
+			{% endfor %}
+			<br>
+			<h3>Paper:</h3>
+		{% endif %}
+		<p>Building {{ deck.name }} should cost you about {{ deck.your_price }} € (Prices are calculated as mkm price trend). 
+		Here are the cards you need to complete it: </p>
+	
+	<p>
+		{% for card in deck.list %}
+			{% if card.copies_missing!=0 %}
+				{{ card.copies_missing }} {{ card.name }}
+			<br>
+			{% endif %}
+			
+		{% endfor %}
+	</p>
+	</div>
+{% endblock content %}
