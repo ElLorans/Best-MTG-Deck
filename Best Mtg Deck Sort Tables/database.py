@@ -1,5 +1,5 @@
 # DATABASE: decklists
-# Modern, Legacy, Pauper
+# author: Lorenzo Cerreta
 
 # Modern DECKLISTS
 Infect = {'Blighted Agent': [4, 0.63], 'Glistener Elf': [4, 0.78], 'Noble Hierarch': [4, 35.34],
