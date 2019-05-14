@@ -1,3 +1,4 @@
+# author: Lorenzo Cerreta
 from database import Modern, Legacy, Pauper, Standard, Standard_Challenger_Decks, LegacyBudgetToTier
 # otherwise does not recognise format lin 73
 
