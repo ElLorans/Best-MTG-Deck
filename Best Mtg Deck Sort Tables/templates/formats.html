@@ -1,36 +1,6 @@
 {% extends "layout.html" %}
 {% block content %}
-	<table border=1 id="customers">
-		<tr>
-		<th>Standard Best Of 1 Tiers by % Price you already have</th>
-		</tr>
-	</table>
-	
-	<table id="customers" class="sortable">
-		<tr>
-		<th>Deck Name:</th>
-		<th>Value you own % </th>
-		<th>Tot price (€) </th>
-		<th>Your Price (€) </th>
-		<th>Number of cards you need </th>
-		<th>Total Number of Cards</th>
-		</tr>
-			{% for deck in bestofone %}
-			<tr>
-			<td><a href='/calc/Best Of One/{{ deck.name }}'> {{ deck.name }} </a></td>
-			<td> {{ deck.value }} </td>
-			<td> {{ deck.tot_price }} </td>
-			<td> {{ deck.your_price }} </td>
-			<td> {{ deck.cards_needed }} </td>
-			<td> {{ deck.cards_total }} </td>
-			</tr>
-			{% endfor %}
-	</table>
-	
-	<br>
-	<br>
-	
-	<table border=1 id="customers">
+	<table id="customers">
 		<tr>
 		<th>Standard Tiers by % Price you already have</th>
 		</tr>
@@ -38,29 +8,89 @@
 	
 	<table id="customers" class="sortable">
 		<tr>
-		<th>Deck Name:</th>
-		<th>Value you own % </th>
-		<th>Tot price (€) </th>
-		<th>Your Price (€) </th>
-		<th>Number of cards you need </th>
-		<th>Total Number of Cards</th>
+			<th>Deck:</th>
+			<th>Value you own % </th>
+			<th>Tot price ({{ currency |safe }}) </th>
+			<th>Your Price ({{ currency |safe }}) </th>
+			<th>Cards you need</th>
+			<th>Tot Cards</th>
 		</tr>
 			{% for deck in standard %}
 			<tr>
-			<td><a href='/calc/Standard/{{ deck.name }}'> {{ deck.name }} </a></td>
+			<td><a href='/calc/Standard/{{ deck.name }}/{{ currency |safe }}'> {{ deck.name }} </a></td>
 			<td> {{ deck.value }} </td>
 			<td> {{ deck.tot_price }} </td>
 			<td> {{ deck.your_price }} </td>
 			<td> {{ deck.cards_needed }} </td>
-			<td> {{ deck.cards_total }} </td>
+			<td>{{ deck.cards_total }} </td>
 			</tr>
 			{% endfor %}
 	</table>
 	
 	<br>
 	<br>
+
+    <table id="customers">
+		<tr>
+		<th>Pioneer Tiers by % Price you already have</th>
+		</tr>
+	</table>
+
+	<table id="customers" class="sortable">
+		<tr>
+			<th>Deck:</th>
+			<th>Value you own % </th>
+			<th>Tot price ({{ currency |safe }}) </th>
+			<th>Your Price ({{ currency |safe }}) </th>
+			<th>Cards you need</th>
+			<th>Tot Cards</th>
+		</tr>
+			{% for deck in pioneer %}
+			<tr>
+			<td><a href='/calc/Pioneer/{{ deck.name }}/{{ currency |safe }}'> {{ deck.name }} </a></td>
+			<td> {{ deck.value }} </td>
+			<td> {{ deck.tot_price }} </td>
+			<td> {{ deck.your_price }} </td>
+			<td> {{ deck.cards_needed }} </td>
+			<td>{{ deck.cards_total }} </td>
+			</tr>
+			{% endfor %}
+	</table>
+
+	<br>
+	<br>
+
+    <table id="customers">
+		<tr>
+		<th>Brawl Tiers by % Price you already have</th>
+		</tr>
+	</table>
+
+	<table id="customers" class="sortable">
+		<tr>
+			<th>Deck:</th>
+			<th>Value you own % </th>
+			<th>Tot price ({{ currency |safe }}) </th>
+			<th>Your Price ({{ currency |safe }}) </th>
+			<th>Cards you need</th>
+			<th>Tot Cards</th>
+		</tr>
+			{% for deck in brawl %}
+			<tr>
+			<td><a href='/calc/Brawl/{{ deck.name }}/{{ currency |safe }}'> {{ deck.name }} </a></td>
+			<td> {{ deck.value }} </td>
+			<td> {{ deck.tot_price }} </td>
+			<td> {{ deck.your_price }} </td>
+			<td> {{ deck.cards_needed }} </td>
+			<td>{{ deck.cards_total }} </td>
+			</tr>
+			{% endfor %}
+	</table>
+
+	<br>
+	<br>
 	
-	<table border=1 id="customers">
+	<table id="customers">
 		<tr>
 		<th>Standard Challenger Decks by % Price you already have</th>
 		</tr>
@@ -68,16 +98,16 @@
 	
 	<table id="customers" class="sortable">
 		<tr>
-		<th>Deck Name:</th>
+		<th>Deck:</th>
 		<th>Value you own % </th>
-		<th>Tot price (€) </th>
-		<th>Your Price (€) </th>
-		<th>Number of cards you need </th>
-		<th>Total Number of Cards</th>
+		<th>Tot price ({{ currency |safe }}) </th>
+		<th>Your Price ({{ currency |safe }}) </th>
+		<th>Cards you need</th>
+		<th>Tot Cards</th>
 		</tr>
 			{% for deck in standardchallengerdecks %}
 			<tr>
-			<td><a href='/calc/Standard Challenger Decks/{{ deck.name }}'> {{ deck.name }} </a></td>
+			<td><a href='/calc/Standard Challenger Decks/{{ deck.name }}/{{ currency |safe }}'> {{ deck.name }} </a></td>
 			<td> {{ deck.value }} </td>
 			<td> {{ deck.tot_price }} </td>
 			<td> {{ deck.your_price }} </td>
@@ -90,7 +120,7 @@
 	<br>
 	<br>
 	
-	<table border=1 id="customers">
+	<table id="customers">
 		<tr>
 		<th>Modern Tiers by % Price you already have</th>
 		</tr>
@@ -98,16 +128,16 @@
 	
 	<table id="customers" class="sortable">
 		<tr>
-		<th>Deck Name:</th>
+		<th>Deck:</th>
 		<th>Value you own % </th>
-		<th>Tot price (€) </th>
-		<th>Your Price (€) </th>
-		<th>Number of cards you need </th>
-		<th>Total Number of Cards</th>
+		<th>Tot price ({{ currency |safe }}) </th>
+		<th>Your Price ({{ currency |safe }}) </th>
+		<th>Cards you need</th>
+		<th>Tot Cards</th>
 		</tr>
 			{% for deck in modern %}
 			<tr>
-			<td><a href='/calc/Modern/{{ deck.name }}'> {{ deck.name }} </a></td>
+			<td><a href='/calc/Modern/{{ deck.name }}/{{ currency |safe }}'> {{ deck.name }} </a></td>
 			<td> {{ deck.value }} </td>
 			<td> {{ deck.tot_price }} </td>
 			<td> {{ deck.your_price }} </td>
@@ -120,7 +150,7 @@
 	<br>
 	<br>
 	
-	<table border=1 id="customers" class="sortable">
+	<table id="customers" class="sortable">
 		<tr>
 		<th>Legacy Tiers by % Price you already have</th>
 		</tr>
@@ -128,16 +158,16 @@
 	
 	<table id="customers" class="sortable">
 		<tr>
-		<th>Deck Name:</th>
+		<th>Deck:</th>
 		<th>Value you own % </th>
-		<th>Tot price (€) </th>
-		<th>Your Price (€) </th>
-		<th>Number of cards you need </th>
-		<th>Total Number of Cards</th>
+		<th>Tot price ({{ currency |safe }}) </th>
+		<th>Your Price ({{ currency |safe }}) </th>
+		<th>Cards you need</th>
+		<th>Tot Cards</th>
 		</tr>
 		{% for deck in legacy %}
 			<tr>
-			<td><a href='/calc/Legacy/{{ deck.name }}'> {{ deck.name }} </a></td>
+			<td><a href='/calc/Legacy/{{ deck.name }}/{{ currency |safe }}'> {{ deck.name }} </a></td>
 			<td> {{ deck.value }} </td>
 			<td> {{ deck.tot_price }} </td>
 			<td> {{ deck.your_price }} </td>
@@ -150,23 +180,23 @@
 	<br>
 	<br>
 	
-	<table border=1 id="customers">
+	<table id="customers">
 		<tr>
 		<th>Legacy Budget To Tiers</th>
 		</tr>
 	</table>
 	<table id="customers" class="sortable">
 		<tr>
-		<th>Deck Name:</th>
+		<th>Deck:</th>
 		<th>Value you own % </th>
-		<th>Tot price (€) </th>
-		<th>Your Price (€) </th>
-		<th>Number of cards you need </th>
-		<th>Total Number of Cards</th>
+		<th>Tot price ({{ currency |safe }}) </th>
+		<th>Your Price ({{ currency |safe }}) </th>
+		<th>Cards you need</th>
+		<th>Tot Cards</th>
 		</tr>
 		{% for deck in legacybudgettotier %}
 			<tr>
-			<td><a href='/calc/Legacy Budget To/{{ deck.name }}'> {{ deck.name }} </a></td>
+			<td><a href='/calc/Legacy Budget To/{{ deck.name }}/{{ currency |safe }}'> {{ deck.name }} </a></td>
 			<td> {{ deck.value }} </td>
 			<td> {{ deck.tot_price }} </td>
 			<td> {{ deck.your_price }} </td>
@@ -179,7 +209,7 @@
 	<br>
 	<br>
 	
-	<table border=1 id="customers">
+	<table id="customers">
 		<tr>
 		<th>Pauper Tiers by % Price you already have</th>
 		</tr>
@@ -187,23 +217,56 @@
 	
 	<table id="customers" class="sortable">
 		<tr>
-		<th>Deck Name:</th>
+		<th>Deck:</th>
 		<th>Value you own % </th>
-		<th>Tot price (€) </th>
-		<th>Your Price (€) </th>
-		<th>Number of cards you need </th>
-		<th>Total Number of Cards</th>
+		<th>Tot price ({{ currency |safe }}) </th>
+		<th>Your Price ({{ currency |safe }}) </th>
+		<th>Cards you need</th>
+		<th>Tot Cards</th>
 		</tr>
 		{% for deck in pauper %}
 			<tr>
-			<td><a href='/calc/Pauper/{{ deck.name }}'> {{ deck.name }} </a></td>
+			<td><a href='/calc/Pauper/{{ deck.name }}/{{ currency |safe }}'> {{ deck.name }} </a></td>
 			<td> {{ deck.value }} </td>
 			<td> {{ deck.tot_price }} </td>
 			<td> {{ deck.your_price }} </td>
-			<td> {{ deck.cards_needed }} </td>
+            <td> {{ deck.cards_needed }} </td>
 			<td> {{ deck.cards_total }} </td>
 			</tr>
 		{% endfor %}
 	</table>
+
+    <br>
+    <br>
+
+    <table id="customers">
+		<tr>
+		<th>Vintage Tiers by % Price you already have</th>
+		</tr>
+	</table>
+
+	<table id="customers" class="sortable">
+		<tr>
+			<th>Deck:</th>
+			<th>Value you own % </th>
+			<th>Tot price ({{ currency |safe }}) </th>
+			<th>Your Price ({{ currency |safe }}) </th>
+			<th>Cards you need</th>
+			<th>Tot Cards</th>
+		</tr>
+		{% for deck in vintage %}
+			<tr>
+				<td><a href='/calc/Vintage/{{ deck.name }}/{{ currency |safe }}'> {{ deck.name }} </a></td>
+				<td> {{ deck.value }} </td>
+				<td> {{ deck.tot_price }} </td>
+				<td> {{ deck.your_price }} </td>
+				<td> {{ deck.cards_needed }}</td>
+				<td> {{ deck.cards_total }} </td>
+			</tr>
+		{% endfor %}
+	</table>
+
+	<br>
+	<br>
 
 {% endblock content %}
