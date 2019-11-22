@@ -1,76 +1,144 @@
-# author: Lorenzo Cerreta
-from database import Modern, Legacy, Pauper, Standard, Standard_Challenger_Decks, LegacyBudgetToTier
-# otherwise does not recognise format lin 73
+from database import Modern, Legacy, Standard, Pauper, LegacyBudgetToTier, LegacyBudgetToTier_Sideboards,\
+    Standard_Challenger_Decks, Modern_Sideboards, Legacy_Sideboards, Standard_Sideboards, Pauper_Sideboards, \
+    Standard_Challenger_Decks_Sideboards, Vintage, Vintage_Sideboards, Pioneer, Pioneer_Sideboards, Brawl
+# otherwise does not recognise format
 
 
-def calc_cards(deck):
-    count = 0
-    for card in deck:
-        count = count + deck[card][0]
-    return count
+def merge(dict_1, dict_2):
+    """
+    Merge 2 dicts of lists: keys from both dicts, the first value is the sum of the
+       first value from both dicts, the other values in the list are unchanged.
+    :dict_1: {"a": [1, 2.0]}
+    :dict_2: {"a": [3, 2.0]}
+    :return: {"a": [4, 2.0]}
+    """
+    if dict_2 is None:
+        return dict_1
+    elif dict_1 is None:
+        return dict_2
+    result = dict()
+
+    for key in dict_1:
+        if key in dict_2:
+            result[key] = [dict_1[key][0] + dict_2[key][0]]     # modifying this is susceptible to shallow copy!!!!
+            for info in dict_1[key][1:]:  # for price and wc
+                result[key].append(info)
+        else:
+            result[key] = dict_1[key]
+    for key in dict_2:
+        if key not in dict_1:
+            result[key] = dict_2[key]
+    return result
 
 
-def calc_your_cards(deck, collection):
-    count = calc_cards(deck)
-    for card in deck.keys():
-        if card.lower() in collection:
-            if collection[card.lower()] > deck[card][0]:          # check n of copies you have AND you need in deck
-                count = count - deck[card][0]
-            else:
-                count = count - collection[card.lower()]
-    return count
+def get_sideboard(format_name):
+    """
+    Return sideboard dict of dicts associated to format_name (format_name_Sideboards).
+    :param format_name: string (e.g.: 'Modern' or 'Legacy')
+    :return: dict (format_name_Sideboards) or None
+    """
+    str_to_side = {"Legacy": Legacy_Sideboards, "Standard": Standard_Sideboards, "Modern": Modern_Sideboards,
+                   "Standard Challenger Decks": Standard_Challenger_Decks_Sideboards, "Pauper": Pauper_Sideboards,
+                   "Vintage": Vintage_Sideboards, "Legacy Budget To": LegacyBudgetToTier_Sideboards,
+                   "Pioneer": Pioneer_Sideboards}
+    return str_to_side.get(format_name)
 
 
-def get_price(deck):            # calculates deck price
-    price = 0
-    for card in deck:
-        price = deck[card][0]*deck[card][1] + price
-    return round(price, 2)                                             # trying to solve Python weird numbers
+class Deck:
+    def __init__(self, name, mainboard, format_name, formato, collection, card_prices, sideboard=None):
+        self.name = name
+        self.mainboard = mainboard                          # dict
+        if sideboard is None:
+            try:
+                self.sideboard = get_sideboard(format_name)[name]
+            except TypeError:
+                self.sideboard = None
+        if len(list(self.mainboard.values())[0]) > 2:       # if values are more than 2, it must be arena
+            self.arena = True
+            self.wc = {'Mythic': 0, 'Rare': 0, 'Uncommon': 0, 'Common': 0}
+        else:
+            self.arena = False
+        self.format_name = format_name                      # string (e.g.: 'Modern')
+        self.formato = formato                              # dict (e.g.: Modern)
+        self.collection = collection
+        self.total = merge(self.mainboard, self.sideboard)  # sum of dicts
+        self.card_prices = card_prices                                # dict of prices in the right currency (€ or $)
+        # values changed by the loop
+        self.cards = 0
+        self.your_cards = 0                                 # cards you already have
+        self.price = 0
+        self.your_price = 0                                 # price you already have but will become price you need
+        # ONE LOOP TO CHANGE THEM ALL
+        for card in self.total:
+            self.cards += self.total[card][0]                                   # count copies
+            self.price += self.total[card][0] * self.card_prices[card.lower()]               # sum price
+            if self.arena:
+                if self.total[card][2] != 'Basic Land':                         # basic land don't matter
+                    self.wc[self.total[card][2]] += self.total[card][0]         # increase wc for every card
+            if card.lower() in collection:
+                minimum = min(self.total[card][0], collection[card.lower()])    # check if more copies than necessary
+                self.your_price += minimum * self.card_prices[card.lower()]
+                self.your_cards += minimum
+                if self.arena:
+                    if self.total[card][2] != 'Basic Land':
+                        # reduce wc needed if you have card in collection by min(cards needed, cards in collection)
+                        self.wc[self.total[card][2]] -= min(self.total[card][0], collection[card.lower()])
 
+        self.price = int(self.price)                                            # solve Python weird numbers
+        self.cards_you_need = self.cards - self.your_cards
+        self.your_price = int(self.price - self.your_price)                     # now self.your_price is price you need
+        self.value_you_own = int((1 - self.your_price / self.price) * 100)
 
-def get_your_price(deck, collection):   # calculates deck price given cards in dictionary named collection
-    your_price = get_price(deck)                                    # no need to call the function every time
-    for card in deck.keys():
-        if card.lower() in collection:
-            if collection[card.lower()] > deck[card][0]:          # check n of copies you have AND you need in deck
-                your_price = your_price - deck[card][0] * deck[card][1]
-            else:
-                your_price = your_price - deck[card][1] * collection[card.lower()]
-    # ABS NEEDED FOR IZZET DRAKES! THERE MUST BE A BUG SOMEWHERE (probably is only Python messing up with maths)
-    return round(abs(your_price), 2)                                        # trying to solve Python weird numbers
-    # return round(your_price, 2)
+    def add_list(self, main_or_side):
+        """
+        Method used by .detail() method to return list of dicts with info about every card in main_or_side (NOT
+        self.total, cuz cards in sideboard could be also in main and screw up).
+        :param main_or_side: self.mainboard or self.sideboard :example : class.detail() will set
+            self.list = self.add_list(self.mainboard)
+        :return :  [
+                    {"name": "mox", "copies_owned": 1, "copies_total": 4, "copies_missing": 3, "price_for_you": 50,
+                            "tot_price": 200, "arena": "(DMN) 196", "wildcards": "3 Mythic" },
+                    {"name": "knight", "copies_owned": 2, "copies_total": 3, "copies_missing": 1, "price_for_you": 10,
+                            "tot_price": 30, "arena": "(XLN) 72", "wildcards": "1 Rare" },
+                    ...
+                    ]
+        """
+        info = list()
+        for card in main_or_side:
+            temp = {'name': card, 'copies_total': main_or_side[card][0]}
+            # if copies > necessary, copies_owned = copies_total
+            temp['copies_owned'] = min(self.collection.get(card.lower(), 0), temp['copies_total'])
+            temp['copies_missing'] = temp['copies_total'] - temp['copies_owned']
+            temp['price_for_you'] = round(temp['copies_missing'] * self.card_prices[card.lower()], 2)
+            temp['tot_price'] = round(temp['copies_total'] * self.card_prices[card.lower()], 2)
+            if self.arena:
+                # if main_or_side[card][2] != 'Basic Land':
+                # joins data for MTGA: '(WAR) 195'
+                temp['arena'] = ' '.join([str(x) for x in main_or_side[card][3:]])
+                temp['wildcards'] = main_or_side[card][2]
+            info.append(temp)
+        return info
 
-
-def get_wildcards_resume(deck_name, formato, collection):    # returns list with needed wildcards
-    deck = formato[deck_name]
-    wc = {"Mythic": 0, "Rare": 0, "Uncommon": 0, "Common": 0}
-    for card in deck:
-        if card.lower() in collection:
-            if collection[card.lower()] < deck[card][0]:
-                # check n of copies you have AND you need in deck
-                wc[deck[card][2]] = wc[deck[card][2]] + deck[card][0] - collection[card.lower()]
-        elif deck[card][2] in wc:
-            wc[deck[card][2]] = wc[deck[card][2]] + deck[card][0]
-    lista = []
-    for elem in wc.keys():
-        temp = str(wc[elem]) + " " + elem
-        lista.append(temp)
-
-    return lista
-
-
-def get_value_you_own(deck, collection):
-    value_you_need = (get_your_price(deck, collection)/get_price(deck))
-    value_you_own = 1 - value_you_need
-    percentage_you_own = value_you_own * 100
-    percentage = round(percentage_you_own, 2)
-    return percentage
+    def detail(self):
+        """
+        Generate info about every card (used only when user clicks on single deck).
+        """
+        self.list = self.add_list(self.mainboard)
+        if self.sideboard is not None:
+            self.list_side = self.add_list(self.sideboard)
 
 
 def get_format(stringa_or_dict):
+    """
+    Return format_name of format or format of format_name.
+    :param stringa_or_dict: string (e.g.: 'Modern') or dict (e.g.: Modern)
+    :return: opposite data type
+    """
     # dictionaries are not hashable, so only strings are in format_converter
     format_converter = {'Modern': Modern, 'Legacy': Legacy, 'Pauper': Pauper, 'Standard': Standard,
-                        'Standard Challenger Decks': Standard_Challenger_Decks, 'Legacy Budget To': LegacyBudgetToTier}
+                        'Standard Challenger Decks': Standard_Challenger_Decks, 'Legacy Budget To': LegacyBudgetToTier,
+                        'Vintage': Vintage, 'Pioneer': Pioneer, 'Brawl': Brawl}
+
     if stringa_or_dict == Modern:
         return "Modern"
     elif stringa_or_dict == Legacy:
@@ -83,135 +151,49 @@ def get_format(stringa_or_dict):
         return "Standard Challenger Decks"
     elif stringa_or_dict == LegacyBudgetToTier:
         return "Legacy Budget To"
+    elif stringa_or_dict == Vintage:
+        return 'Vintage'
+    elif stringa_or_dict == Pioneer:
+        return 'Pioneer'
+    elif stringa_or_dict == Brawl:
+        return 'Brawl'
     elif stringa_or_dict in format_converter:
         return format_converter[stringa_or_dict]
 
 
-def get_formato_resume(collection, formato, order=1):
-    # NEW SMART LAYOUT
-    formato_resume = []             # final output: list of dictionaries
-    decks_value_you_own = {}
-    decks_by_value_you_own = {}
-    for deck in formato.keys():
-        you_own = (1-(get_your_price(formato[deck], collection)/get_price(formato[deck]))) * 100
-        # stores ratio DO NOT FORMAT IT AS % OR SORTING WILL NOT WORK
-        decks_value_you_own[deck] = round(you_own, 2)
-    # line below sorts by lowest %, BUT is a list made of tuples (%, Deck Name), DOES NOT WORK WITH %
-    if order == 1:                                              # orders only if order is not specified or set = 1
-        sorted_decks_value_you_own = sorted((v, k) for (k, v) in decks_value_you_own.items())
-        sorted_decks_value_you_own = sorted(sorted_decks_value_you_own, reverse=True)       # sorts by highest %
-        for elem in sorted_decks_value_you_own:
-            decks_by_value_you_own[str(elem[1])] = elem[0]
-    else:
-        for deck in decks_value_you_own:
-            decks_by_value_you_own[deck] = '%s' % float('%.3g' % (decks_value_you_own[deck]))
+def get_db(collection, formato, card_prices, sorted_by_value_you_have=True):
+    """
+    Create instances of class Deck for every deck in formato, Return list of dictionaries with deck infos to populate
+    html tables.
+    """
+    db = []
+    for name, deck in formato.items():
+        deck = Deck(name, deck, get_format(formato), formato, collection, card_prices)
 
-    temp = {}
-    for deck_name in decks_by_value_you_own.keys():
-        temp["name"] = deck_name
-        temp["value"] = decks_by_value_you_own[deck_name]
-        temp["tot_price"] = get_price(formato[deck_name])
-        temp["your_price"] = get_your_price(formato[deck_name], collection)
-        temp["cards_needed"] = calc_your_cards(formato[deck_name], collection)
-        temp["cards_total"] = calc_cards(formato[deck_name])
-        formato_resume.append(temp)
-        temp = {}
-    return formato_resume
+        temp = {'name': deck.name, 'formato': deck.format_name, 'value': deck.value_you_own, 'tot_price': deck.price,
+                'your_price': deck.your_price, 'cards_needed': deck.cards_you_need, 'cards_total': deck.cards}
 
+        db.append(temp)
 
-def get_deck_resume(format_name, deck_name, collection):
-    formato = get_format(format_name)
-    resume = dict()
-
-#    resume = {
-#                "formato": "Standard",
-#                "name": "Ahbohhh",
-#                "value": 57,
-#                "price": 345,
-#                "your_price": 56,
-#                "cards_needed": 10,
-#                "cards_total": 60,
-#                "wildcards": ["3 Mythic", #total wildcards, not for each card
-#                              "1 Rare"
-#                              ],
-#                "listone": [
-#                    {
-#                        "name": "mox",
-#                        "copies_owned": 1,
-#                        "copies_total": 4,
-#                        "copies_missing": 3,
-#                        "price_for_you": 50,
-#                        "tot_price": 200,
-#                        "arena": "mox amber (DMN) 196",
-#                        "wildcards": "3 Mythic"
-#                        },
-#                    {
-#                        "name": "knight",
-#                        "copies_owned": 2,
-#                        "copies_total": 3,
-#                        "copies_missing": 1,
-#                        "price_for_you": 10,
-#                        "tot_price": 30,
-#                        "arena": "knight (XLN) 72",
-#                        "wildcards": "1 Rare"
-#                        },
-#                    ]
-#            }
-    resume["formato"] = format_name
-    resume["name"] = deck_name
-    resume["value"] = get_value_you_own(formato[deck_name], collection)
-    resume["price"] = get_price(formato[deck_name])
-    resume["your_price"] = get_your_price(formato[deck_name], collection)
-    resume["cards_needed"] = calc_your_cards(formato[deck_name], collection)
-    resume["cards_total"] = calc_cards(formato[deck_name])
-    if format_name == "Standard" or format_name == "Standard Challenger Decks":
-        resume["wildcards"] = get_wildcards_resume(deck_name, formato, collection)
-    listone = []
-    card_info = {}
-    
-    for card in formato[deck_name]:
-        card_info["name"] = card
-        if card.lower() in collection:
-            if formato[deck_name][card][0] > collection[card.lower()]:
-                card_info["copies_owned"] = collection[card.lower()]
-                card_info["copies_missing"] = formato[deck_name][card][0] - collection[card.lower()]
-            else:
-                card_info["copies_owned"] = formato[deck_name][card][0]
-                card_info["copies_missing"] = 0
-        else:
-            card_info["copies_owned"] = 0
-            card_info["copies_missing"] = formato[deck_name][card][0]
-        card_info["copies_total"] = formato[deck_name][card][0]
-        card_info["copies_missing"] = card_info["copies_total"] - card_info["copies_owned"]
-        card_info["price_for_you"] = round(formato[deck_name][card][1] * card_info["copies_missing"], 2)
-        card_info["tot_price"] = round(formato[deck_name][card][0] * formato[deck_name][card][1], 2)
-        if format_name == "Standard" or format_name == "Standard Challenger Decks":
-            arena = ""
-            for elem in formato[deck_name][card][3:]:
-                arena = arena + " " + str(elem)
-            card_info["arena"] = arena
-            if "basic" not in formato[deck_name][card][2].lower():
-                card_info["wildcards"] = str(formato[deck_name][card][0]) + " " + formato[deck_name][card][2]
-        listone.append(card_info)
-        print(card_info)
-        card_info = {}
-
-    resume["list"] = listone
-    return resume
+    if sorted_by_value_you_have is True:
+        db = sorted(db, key=lambda x: x['value'], reverse=True)
+    return db
 
 
 def price_collection(price_dict, collec_dict):
-    # final = {
-    # "tot_copies": 6,
-    #     "different_cards": 2,
-    #     "tot_value": 320,
-    #     "unrecognized": ["a", "b"],
-    #     "recognized": [
-    #         {"name": "tarmogoyf", "copies": 2, "price": 50, "tot_price": 100},
-    #         {"name": "scalding tarn", "copies": 4, "price": 55, "tot_price": 220}
-    #                     ]
-    #         }
-
+    """
+    Evaluate collec_dict with prices from price_dict.
+    :return:           {
+                        "tot_copies": 6,
+                        "different_cards": 2,
+                        "tot_value": 320,
+                        "unrecognized": ["a", "b"],
+                        "recognized": [
+                                        {"name": "tarmogoyf", "copies": 2, "price": 50, "tot_price": 100},
+                                        {"name": "scalding tarn", "copies": 4, "price": 55, "tot_price": 220}
+                                    ]
+                        }
+    """
     unrec_recognized = {}
     unrec = []
     recognized = []
@@ -242,14 +224,13 @@ def price_collection(price_dict, collec_dict):
     return unrec_recognized
 
 
-# UNCOMMENT FOR TESTING
-# start = {"ajani, adversary of tyrants": 4}
-# print(formato_table(start, Modern))
-# print(get_formato_resume(start, LegacyBudgetToTier, order=1))
-# print(get_wildcards_resume("White Weenies", start))
-# print(get_value_you_own(Standard["White Weenies"], start))
-# print(get_deck_resume("Standard", "White Weenies", start))
-# import json
-# with open('prices.json', 'r') as j_file:    # loads prices FOR LOCALHOST
-#        price_list = json.load(j_file)
-# print(price_collection(price_list, start))
+if __name__ == "__main__":
+    import json
+    collection = {"ancient stirrings": 4}
+    test = {"disdainful stroke": 3}
+    with open("prices_eur.json") as j:
+        eur_prices = json.load(j)
+    with open("prices_usd.json") as j:
+        usd_prices = json.load(j)
+    deck = list(Standard.keys())[0]
+    dk = Deck("Simic Ramp", Standard[deck], "Standard", Standard, collection, eur_prices)
