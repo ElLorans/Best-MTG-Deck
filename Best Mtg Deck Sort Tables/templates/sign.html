@@ -1,7 +1,6 @@
 {% extends "layout.html" %}
 {% block content %}
   <body>
-		<p></p>
 		<div class="container">
 			<form class="form-signin" method="post" action="/process">
 				<h2 class="form-signin-heading" style=text-align:center>Insert Collection</h2>
@@ -9,12 +8,17 @@
 				<p></p>
 				<div class="form-group">
 					<label for="comment" class="sr-only">Insert Collection:</label>
-					<textarea class="form-control" name="comment" rows="10" id="comment" placeholder="1 tarmogoyf" required></textarea>
+					<textarea class="form-control" name="comment" rows="10" id="comment" placeholder="1 tarmogoyf"
+                              required></textarea>
 				</div>
+
+            <label>
+                <input type="checkbox" name="dollars" value="dollar">
+            </label> Prices in USD
 
 			</form>
 
-		</div> <!-- /container -->
+		</div>
 
   </body>
 {% endblock content %}

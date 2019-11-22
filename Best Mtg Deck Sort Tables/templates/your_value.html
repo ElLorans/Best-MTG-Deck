@@ -18,7 +18,7 @@
 		<table class="sortable" id="customers">
 			<tr>
 				<th>Your Collection is worth</th>
-				<th>{{ value.tot_value }} €</th>
+				<th>{{ value.tot_value }} {{  currency |safe }}</th>
 			</tr>
 			<tr>
 				<td># Different Cards</td>
@@ -42,7 +42,7 @@
 			{% for card in value.recognized %}
 				<tr>
 					<td>
-					<a class="simple" href="https://deckbox.org/mtg/ {{ card.name }} " > {{ card.name }} </a>
+					<a class="simple" href="https://deckbox.org/mtg/ {{ card.name }} " > {{ card.name.title() }} </a>
 					</td>
 					<td>{{ card.copies }}</td>
 					<td>{{ card.price }}</td>
