@@ -152,8 +152,8 @@ def evaluate():
 
 @app.route("/download")  # this is a job for GET, not POST
 def download_file():
-    return send_file("outputs/OrensMTGA-EasyExporterV0.3.exe", mimetype="exe",
-                     attachment_filename="OrensMTGA-EasyExporterV0.3.exe", as_attachment=True)
+    return send_file("outputs/OrensMTGA-EasyExporterV0.5.exe", mimetype="exe",
+                     attachment_filename="OrensMTGA-EasyExporterV0.5.exe", as_attachment=True)
 
 
 @app.errorhandler(404)
