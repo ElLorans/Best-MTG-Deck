@@ -1,4 +1,4 @@
-prices_usd ={
+prices_usd = {
   "absorb vis": 0.01,
   "aerial formation": 0.01,
   "ainok artillerist": 0.01,
@@ -14586,7 +14586,7 @@ prices_usd ={
   "predatory sliver": 0.39,
   "reality strobe": 0.39,
   "reaping the graves": 0.39,
-  "ribbons": 0.39,
+  "cut // ribbons": 0.39,
   "rishkar, peema renegade": 0.39,
   "rysorian badger": 0.39,
   "seraph": 0.39,

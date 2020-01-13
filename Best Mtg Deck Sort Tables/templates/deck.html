@@ -106,7 +106,7 @@
     {% endif %}
 
     <div class="well">
-		{% if deck.arena %} 
+		{% if deck.arena %}
 			<h3>MTGA:</h3>
 			<h5>You need</h5>
 			{% for type, num in deck.wc.items() %}
@@ -133,14 +133,14 @@
             Building {{ deck.name }} should cost you about {{ deck.your_price }} {{ currency |safe }}
             (Prices are calculated as mkm price trend). Here are the cards you need to complete it:
         </p>
-	
+
 	<p>
 		{% for card in deck.list %}
 			{% if card.copies_missing != 0 %}
 				{{ card.copies_missing }} {{ card.name }}
 			<br>
 			{% endif %}
-			
+
 		{% endfor %}
         <br>
         {% for card in deck.list_side %}
