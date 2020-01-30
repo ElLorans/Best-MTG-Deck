@@ -2,7 +2,6 @@
 Library to get relevant info from collection and database of MTG Tier decks.
 """
 
-from arena_info import arena_info
 from database import Modern, Legacy, Standard, Pauper, LegacyBudgetToTier, LegacyBudgetToTier_Sideboards, \
     Modern_Sideboards, Legacy_Sideboards, Standard_Sideboards, Pauper_Sideboards, Pioneer, Pioneer_Sideboards, Brawl
 from rarity import rarity
@@ -15,7 +14,7 @@ basic_lands = {'Forest': '(ELD) 266', 'Swamp': '(ELD) 258', 'Mountain': '(ELD) 2
 
 def merge(dict_1, dict_2):
     """
-    Merge 2 dicts of ints: keys from both dicts, values are the sum of values.
+    Merge 2 dicts of ints: keys from both dicts, values are the sum of values (one dict can be None).
     :dict_1: {"a": 1, "b": 2}
     :dict_2: {"a": 3, "c": 3}
     :return: {"a": 4, "b": 2, "c": 3}
@@ -26,14 +25,17 @@ def merge(dict_1, dict_2):
         return dict_2
     summa = dict()
 
-    for key in dict_1:
-        if key in dict_2:
-            summa[key] = dict_1[key] + dict_2[key]
-        else:
-            summa[key] = dict_1[key]
-    for key in dict_2:
-        if key not in dict_1:
-            summa[key] = dict_2[key]
+    # for key in dict_1:
+    #     if key in dict_2:
+    #         summa[key] = dict_1[key] + dict_2[key]
+    #     else:
+    #         summa[key] = dict_1[key]
+    # for key in dict_2:
+    #     if key not in dict_1:
+    #         summa[key] = dict_2[key]
+    for key in dict_1.keys() | dict_2.keys():                       # union of all keys
+        summa[key] = dict_1.get(key, 0) + dict_2.get(key, 0)        # sum quantities or 0 if key not found
+    #
     return summa
 
 
@@ -82,7 +84,7 @@ class Deck:
         self.total = merge(self.mainboard, self.sideboard)  # sum of dicts
         self.card_prices = card_prices                  # dict of prices in the right currency (€ or $)
         self.list = None                                # overwritten by self.detail when url of specific deck is called
-        # self.list_side = None          # initialized by self.detail when url of specific deck is called OTHERWISE CRASHES
+        # self.list_side = None       # initialized by self.detail when url of specific deck is called OTHERWISE CRASHES
         self.cards = sum(self.total.values())
 
         # values changed by the loop
@@ -90,25 +92,37 @@ class Deck:
         self.price = 0
         self.your_price = 0                             # price you already have but will become price you need
 
-        # ONE LOOP TO CHANGE THEM ALL: only one loop should be more efficient than optimizing single operations
+        # ONE LOOP TO CHANGE THEM ALL: only one loop could be more efficient than optimizing single operations
+
         for card in self.total:
-            self.price += self.total[card] * self.card_prices[card.lower()]        # copies * price
+            card_name = card
+
+            # UNCOMMENT IN CASE DATABASE IS FULL OF MISSING DOUBLE CARDS
+            if " // " in card:
+                # double cards are often not included in db. Solve by calling only first part
+                # e.g.: "status // statue" becomes "status"
+                card_name = card.split(" // ")[0]
+            else:
+                card_name = card
+
+            self.price += self.total[card] * self.card_prices[card_name.lower()]        # copies * price
+
             if self.arena:
                 if card not in basic_lands:                                        # basic land don't matter
                     # increase wc for every card.
-                    self.wc[rarity[card]] += self.total[card]                      # if lands missing, use next comment
+                    self.wc[rarity[card_name]] += self.total[card]                      # if lands missing, use next comment
 
                     # add to rarity: {'Forest': "Basic Land", 'Swamp': "Basic Land", 'Mountain': "Basic Land",
                     # 'Plains': "Basic Land", 'Island': "Basic Land"}
 
             if card.lower() in coll_dict:
                 minimum = min(self.total[card], coll_dict[card.lower()])           # check if more copies than necessary
-                self.your_price += minimum * self.card_prices[card.lower()]
+                self.your_price += minimum * self.card_prices[card_name.lower()]
                 self.your_cards += minimum
                 if self.arena:
                     if card not in basic_lands:
                         # reduce wc needed if you have card in coll_dict by min(cards needed, cards in coll_dict)
-                        self.wc[rarity[card.lower()]] -= min(self.total[card], coll_dict[card.lower()])
+                        self.wc[rarity[card]] -= min(self.total[card], coll_dict[card.lower()])
 
         self.price = int(self.price)                                            # solve Python weird numbers
         self.cards_you_need = self.cards - self.your_cards
@@ -132,17 +146,24 @@ class Deck:
         """
         info = list()
         for card in main_or_side:
+
+            # card_name = card
+            if " // " in card:
+                # double cards are often not included in db. Solve by calling only first part
+                # e.g.: "status // statue" becomes "status"
+                card_name = card.split(" // ")[0]
+            else:
+                card_name = card
+
             temp = {'name': card, 'copies_total': main_or_side[card]}
             # if copies > necessary, copies_owned = copies_total
             temp['copies_owned'] = min(self.collection.get(card.lower(), 0), temp['copies_total'])
             temp['copies_missing'] = temp['copies_total'] - temp['copies_owned']
-            temp['price_for_you'] = round(temp['copies_missing'] * self.card_prices[card.lower()], 2)
-            temp['tot_price'] = round(temp['copies_total'] * self.card_prices[card.lower()], 2)
+            temp['price_for_you'] = round(temp['copies_missing'] * self.card_prices[card_name.lower()], 2)
+            temp['tot_price'] = round(temp['copies_total'] * self.card_prices[card_name.lower()], 2)
 
             if self.arena is True:
-                temp['arena'] = arena_info[card]     # use next line comment to get basic_lands
-                # arena_info.update(basic_lands)
-                temp['wildcards'] = rarity[card]
+                temp['wildcards'] = rarity[card_name]
             info.append(temp)
         return info
 
@@ -204,7 +225,7 @@ def get_db(my_collection, formato, card_prices, sorted_by_value_you_have=True):
     return db
 
 
-def price_collection(price_dict, collec_dict):
+def price_collection(price_dict: dict, collec_dict: dict) -> dict:
     """
     Evaluate collec_dict with prices from price_dict.
     :price_dict: dict of prices
@@ -258,4 +279,3 @@ if __name__ == "__main__":  # test
 
     deck = list(Standard.keys())
     dk = Deck("Simic Ramp", Standard[deck], "Standard", Standard, collection, prices_eur, arena=True)
-    breakpoint()
