@@ -101,12 +101,6 @@ def process():
         json.dump(collection, outfile)
 
     currency_html, card_prices = get_currency(request)
-    # if "dollars" not in request.form:           # if tick box for USD is not checked by user
-    #     currency_html = "&euro;"                # € sign for html
-    #     card_prices = prices_eur
-    # else:
-    #     currency_html = "&#36;"                 # $ sign for html
-    #     card_prices = prices_usd
 
     return render_template("formats.html",
                            standard=get_db(collection, Standard, card_prices),
@@ -148,7 +142,8 @@ def calc(format_name, deck_name, currency="€"):
 
     return render_template("deck.html", deck=dk, title=deck_name, currency=currency)
 
-    # except KeyError:  # if user changes deck_name in url / cannot find deck
+    # except KeyError:
+    #     # if user changes deck_name in url / cannot find deck
     #     return render_template("wrongformat.html",
     #                            error="This deck does not exist. The requested URL was not found on the server and")
     # except TypeError:
@@ -171,26 +166,20 @@ def evaluate():
         return render_template("wrongformat.html", error=mistake)
 
     currency_html, prices = get_currency(request)
-    # if "dollars" not in request.form:
-    #     currency_html = "&euro;"                # € sign for html
-    #     prices = prices_eur
-    # else:
-    #     currency_html = "&#36;"                 # $ sign for html
-    #     prices = prices_usd
 
     return render_template("your_value.html", value=price_collection(prices, collection), currency=currency_html)
 
 
 @app.route("/download")  # this is a job for GET, not POST
 def download_file():
-    return send_file("outputs/OrensMTGA-EasyExporterV0.5.exe", mimetype="exe",
-                     attachment_filename="OrensMTGA-EasyExporterV0.5.exe", as_attachment=True)
+    return send_file("outputs/OrensMTGA-EasyExporterV0.6.exe", mimetype="exe",
+                     attachment_filename="OrensMTGA-EasyExporterV0.6.exe", as_attachment=True)
 
 
-# @app.errorhandler(404)
-# def page_not_found(e):
-#     return render_template("wrongformat.html", error="The requested URL was not found on the server and")
-#
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template("wrongformat.html", error="The requested URL was not found on the server and")
+
 
 if __name__ == "__main__":
     app.run(debug=True)
