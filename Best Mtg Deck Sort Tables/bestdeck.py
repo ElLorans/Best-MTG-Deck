@@ -3,7 +3,8 @@ Library to get relevant info from collection and database of MTG Tier decks.
 """
 
 from database import Modern, Legacy, Standard, Pauper, LegacyBudgetToTier, LegacyBudgetToTier_Sideboards, \
-    Modern_Sideboards, Legacy_Sideboards, Standard_Sideboards, Pauper_Sideboards, Pioneer, Pioneer_Sideboards, Brawl
+    Modern_Sideboards, Legacy_Sideboards, Standard_Sideboards, Pauper_Sideboards, Pioneer, Pioneer_Sideboards, Brawl, \
+    Historic, Historic_Sideboards
 from rarity import rarity
 
 # otherwise does not recognise format
@@ -47,7 +48,7 @@ def get_sideboard_dict(format_name):
     """
     str_to_side = {"Legacy": Legacy_Sideboards, "Standard": Standard_Sideboards, "Modern": Modern_Sideboards,
                    "Pauper": Pauper_Sideboards, "Pioneer": Pioneer_Sideboards,
-                   "Legacy Budget To": LegacyBudgetToTier_Sideboards}
+                   "Legacy Budget To": LegacyBudgetToTier_Sideboards, "Historic": Historic_Sideboards}
     return str_to_side.get(format_name)
 
 
@@ -95,9 +96,9 @@ class Deck:
         # ONE LOOP TO CHANGE THEM ALL: only one loop could be more efficient than optimizing single operations
 
         for card in self.total:
-            card_name = card
+            card_name = card    # used in case next block is commented
 
-            # UNCOMMENT IN CASE DATABASE IS FULL OF MISSING DOUBLE CARDS
+            # UNCOMMENT IN CASE DATABASE CONTAINS ALL MISSING DOUBLE CARDS
             if " // " in card:
                 # double cards are often not included in db. Solve by calling only first part
                 # e.g.: "status // statue" becomes "status"
@@ -185,7 +186,7 @@ def get_format(stringa_or_dict):
     """
     # dictionaries are not hashable, so only strings are in format_converter
     format_converter = {'Modern': Modern, 'Legacy': Legacy, 'Pauper': Pauper, 'Standard': Standard,
-                        'Legacy Budget To': LegacyBudgetToTier, 'Pioneer': Pioneer, 'Brawl': Brawl}
+                        'Legacy Budget To': LegacyBudgetToTier, 'Pioneer': Pioneer, 'Brawl': Brawl, 'Historic': Historic}
 
     if stringa_or_dict == Modern:
         return "Modern"
@@ -201,6 +202,8 @@ def get_format(stringa_or_dict):
         return 'Pioneer'
     elif stringa_or_dict == Brawl:
         return 'Brawl'
+    elif stringa_or_dict == Historic:
+        return 'Historic'
     elif stringa_or_dict in format_converter:
         return format_converter[stringa_or_dict]
 
@@ -213,7 +216,8 @@ def get_db(my_collection, formato, card_prices, sorted_by_value_you_have=True):
     db = []
     for name, pack in formato.items():
         nth_deck = Deck(name, pack, get_format(formato), formato, my_collection, card_prices)
-
+        # UNCOMMENT IN DEVELOPMENT to test all decklists (like if clicking on every link):
+        # nth_deck.detail()
         temp = {'name': nth_deck.name, 'formato': nth_deck.format_name, 'value': nth_deck.value_you_own,
                 'tot_price': nth_deck.price, 'your_price': nth_deck.your_price, 'cards_needed': nth_deck.cards_you_need,
                 'cards_total': nth_deck.cards}
