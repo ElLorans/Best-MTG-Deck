@@ -8,7 +8,7 @@ import json
 from flask import Flask, render_template, request, send_file
 
 from bestdeck import price_collection, get_db, Deck, get_format
-from database import Modern, Legacy, Standard, Pauper, LegacyBudgetToTier, Pioneer, Brawl
+from database import Modern, Legacy, Standard, Pauper, LegacyBudgetToTier, Pioneer, Brawl, Historic
 from prices_eur import prices_eur
 from prices_usd import prices_usd
 
@@ -104,6 +104,7 @@ def process():
 
     return render_template("formats.html",
                            standard=get_db(collection, Standard, card_prices),
+                           historic=get_db(collection, Historic, card_prices),
                            pioneer=get_db(collection, Pioneer, card_prices),
                            brawl=get_db(collection, Brawl, card_prices),
                            modern=get_db(collection, Modern, card_prices),
@@ -130,7 +131,7 @@ def calc(format_name, deck_name, currency="€"):
     with open("collection.json", "r") as json_file:
         collection = json.load(json_file)
 
-    if format_name in ("Standard", "Brawl"):
+    if format_name in ("Standard", "Brawl", "Historic"):
         is_arena = True
     else:
         is_arena = False
