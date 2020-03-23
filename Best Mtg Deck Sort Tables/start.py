@@ -1,14 +1,12 @@
 """
 Urls and start of the website.
 """
-
-
 import json
+import random
 
-from flask import Flask, render_template, request, send_file
+from flask import Flask, render_template, request, send_file, session
 
 from bestdeck import price_collection, get_db, Deck, get_format
-from database import Modern, Legacy, Standard, Pauper, LegacyBudgetToTier, Pioneer, Brawl, Historic
 from prices_eur import prices_eur
 from prices_usd import prices_usd
 
@@ -19,24 +17,21 @@ def get_currency(wk_local_proxy):
     :param wk_local_proxy: class 'werkzeug.local.LocalProxy'
     :return: tuple (str, dict)
     """
-    if "dollars" not in wk_local_proxy.form:           # if tick box for USD is not checked by user
-        currency_html = "&euro;"                # € sign for html
+    if "dollars" not in wk_local_proxy.form:  # if tick box for USD is not checked by user
+        currency_html = "&euro;"  # € sign for html
         card_prices = prices_eur
     else:
-        currency_html = "&#36;"                 # $ sign for html
+        currency_html = "&#36;"  # $ sign for html
         card_prices = prices_usd
     return currency_html, card_prices
 
 
-def get_form(wkzg_local_proxy):
+def str_to_collection(string: str) -> dict:
     """
     Get form with coll_dict.
-    :param wkzg_local_proxy: class 'werkzeug.local.LocalProxy'
-    :return: dict
     """
-    comment = wkzg_local_proxy.form["comment"]
     collection = dict()  # create dict with user input
-    comment = comment.lower()  # ignores capitalization
+    comment = string.lower()  # ignores capitalization
     comment = comment.replace("  ", " ")  # removes double spaces
     comment = comment.replace("\t", " ")  # removes tab
     comment = comment.split("\n")  # separates lines
@@ -66,6 +61,7 @@ def get_form(wkzg_local_proxy):
 
 # initialize website
 app = Flask(__name__)
+app.secret_key = b':\xafq\x87\xe0\x12\xbfU\xeeC\x9b\x17\xcfs\xaf)'  # cryptography for cookie where collection is stored
 
 
 @app.route("/")
@@ -81,57 +77,86 @@ def sign():
     return render_template("sign.html")
 
 
-@app.route("/process", methods=["POST"])
-def process():
-    """
-    First table showing all decks and info.
-    """
+@app.route("/<format_name>/<currency>", methods=["POST", "GET"])
+def show_single_format(format_name, currency="€"):
     try:
-        collection = get_form(request)  # request is class 'werkzeug.local.LocalProxy'
-        collection["swamp"] = 25
-        collection["island"] = 25
-        collection["plains"] = 25
-        collection["mountain"] = 25
-        collection["forest"] = 25
-    except (IndexError, ValueError) as err:
-        mistake = str(err.args[0])
-        return render_template("wrongformat.html", error=mistake)
+        with open("collections.json") as data:
+            collections = json.load(data)
+    except:    # if collections.json is too big, create a new one
+        empty_dict = {"a": 1}
+        with open("collections.json", "w") as data:
+            json.dump(empty_dict, data)
+        collections = dict()
 
-    with open("collection.json", "w") as outfile:
-        json.dump(collection, outfile)
+    if request.method == "POST":
+        try:
+            # comment is name of inp box where user inserts collection
+            collection = str_to_collection(request.form["comment"])
+            collection["swamp"] = 25
+            collection["island"] = 25
+            collection["plains"] = 25
+            collection["mountain"] = 25
+            collection["forest"] = 25
+            # session["collection"] = collection
+            session["user_code"] = str(random.random())
 
-    currency_html, card_prices = get_currency(request)
+            collections[session["user_code"]] = collection
 
-    return render_template("formats.html",
-                           standard=get_db(collection, Standard, card_prices),
-                           historic=get_db(collection, Historic, card_prices),
-                           pioneer=get_db(collection, Pioneer, card_prices),
-                           brawl=get_db(collection, Brawl, card_prices),
-                           modern=get_db(collection, Modern, card_prices),
-                           legacy=get_db(collection, Legacy, card_prices),
-                           legacybudgettotier=get_db(collection, LegacyBudgetToTier, card_prices,
-                                                     sorted_by_value_you_have=False),
-                           pauper=get_db(collection, Pauper, card_prices),
-                           currency=currency_html
-                           )
+            with open("collections.json", "w") as j:
+                json.dump(collections, j)
+        except (IndexError, ValueError) as err:
+            mistake = str(err.args[0])
+            return render_template("wrongformat.html", error=mistake)
+
+    else:     # elif request.method == "GET":
+        # if "collection" in session:
+        if 'user_code' in session:
+            collection = collections[session["user_code"]]
+        else:
+            collection = {"island": 25, "mountain": 25, "swamp": 25, "plains": 25, "forest": 25}
+
+    if currency == "€":
+        card_prices = prices_eur
+    elif currency == "$":
+        card_prices = prices_usd
+    else:
+        return render_template("wrongformat.html", error="The url you inserted")
+
+    return render_template("format.html",
+                           format_name=format_name,
+                           formato=get_db(collection, get_format(format_name), card_prices),
+                           currency=currency,
+                           prices=card_prices)
 
 
-@app.route("/calc/<format_name>/<deck_name>", strict_slashes=False, methods=["GET"])
+# @app.route("/calc/<format_name>/<deck_name>", strict_slashes=False, methods=["GET"])
 @app.route("/calc/<format_name>/<deck_name>/<currency>", strict_slashes=False, methods=["GET"])
-def calc(format_name, deck_name, currency="€"):
+def calc(format_name, deck_name, currency):
     """
     Page showing all cards of a particular deck.
     """
+    try:
+        with open("collections.json") as data:
+            collections = json.load(data)
+    except:  # if collections.json is too big, create a new one
+        empty_dict = {"a": 1}
+        with open("collections.json", "w") as data:
+            json.dump(empty_dict, data)
+        collections = dict()
+
     if currency == "$":
         prices = prices_usd
-
     else:
         prices = prices_eur
 
-    with open("collection.json", "r") as json_file:
-        collection = json.load(json_file)
+    # if "collection" in session:
+    if "user_code" in session:
+        # collection = session["collection"]
+        collection = collections[session["user_code"]]
+    else:
+        collection = {"island": 25, "mountain": 25, "swamp": 25, "plains": 25, "forest": 25}
 
-    if format_name in ("Standard", "Brawl", "Historic"):
+    if format_name in ("Standard", "Brawl", "Historic", "Historic Brawl"):
         is_arena = True
     else:
         is_arena = False
@@ -161,7 +186,7 @@ def values():
 @app.route("/value_result", methods=["POST"])
 def evaluate():
     try:
-        collection = get_form(request)
+        collection = str_to_collection(request.form["comment"])
     except (IndexError, ValueError) as err:
         mistake = str(err.args[0][0])  # err.args = (["aaa"])  err.args[0] = ["aaa"]
         return render_template("wrongformat.html", error=mistake)
