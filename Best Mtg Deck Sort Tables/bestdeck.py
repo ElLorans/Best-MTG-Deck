@@ -1,10 +1,12 @@
 """
 Library to get relevant info from collection and database of MTG Tier decks.
 """
+from typing import List, Union, Any, Dict
 
-from database import Modern, Legacy, Standard, Pauper, LegacyBudgetToTier, LegacyBudgetToTier_Sideboards, \
-    Modern_Sideboards, Legacy_Sideboards, Standard_Sideboards, Pauper_Sideboards, Pioneer, Pioneer_Sideboards, Brawl, \
-    Historic, Historic_Sideboards
+from database import Standard, Brawl, Historic, Pioneer, Modern, Legacy, LegacyBudgetToTier, Pauper, Vintage, Cube, \
+                     Historic_Brawl, \
+                     Standard_Sideboards, Historic_Sideboards, Pioneer_Sideboards, Modern_Sideboards, \
+                     Legacy_Sideboards,  LegacyBudgetToTier_Sideboards, Pauper_Sideboards, Vintage_Sideboards
 from rarity import rarity
 
 # otherwise does not recognise format
@@ -13,12 +15,12 @@ basic_lands = {'Forest': '(ELD) 266', 'Swamp': '(ELD) 258', 'Mountain': '(ELD) 2
                'Island': '(ELD) 254'}
 
 
-def merge(dict_1, dict_2):
+def merge(dict_1: dict, dict_2) -> dict:
     """
     Merge 2 dicts of ints: keys from both dicts, values are the sum of values (one dict can be None).
     :dict_1: {"a": 1, "b": 2}
-    :dict_2: {"a": 3, "c": 3}
-    :return: {"a": 4, "b": 2, "c": 3}
+    :dict_2: {"a": 3, "c": 3} or None
+    :return: {"a": 4, "b": 2, "c": 3} or {"a": 1, "b": 2}
     """
     if dict_2 is None:
         return dict_1
@@ -26,17 +28,9 @@ def merge(dict_1, dict_2):
         return dict_2
     summa = dict()
 
-    # for key in dict_1:
-    #     if key in dict_2:
-    #         summa[key] = dict_1[key] + dict_2[key]
-    #     else:
-    #         summa[key] = dict_1[key]
-    # for key in dict_2:
-    #     if key not in dict_1:
-    #         summa[key] = dict_2[key]
     for key in dict_1.keys() | dict_2.keys():                       # union of all keys
         summa[key] = dict_1.get(key, 0) + dict_2.get(key, 0)        # sum quantities or 0 if key not found
-    #
+
     return summa
 
 
@@ -48,7 +42,8 @@ def get_sideboard_dict(format_name):
     """
     str_to_side = {"Legacy": Legacy_Sideboards, "Standard": Standard_Sideboards, "Modern": Modern_Sideboards,
                    "Pauper": Pauper_Sideboards, "Pioneer": Pioneer_Sideboards,
-                   "Legacy Budget To": LegacyBudgetToTier_Sideboards, "Historic": Historic_Sideboards}
+                   "Legacy Budget To": LegacyBudgetToTier_Sideboards, "Historic": Historic_Sideboards,
+                   "Vintage": Vintage_Sideboards}
     return str_to_side.get(format_name)
 
 
@@ -183,10 +178,13 @@ def get_format(stringa_or_dict):
 
     :param stringa_or_dict: string (e.g.: 'Modern') or dict (e.g.: Modern)
     :return: opposite data type (dict or string)
+    -------
+    Impure Function
     """
     # dictionaries are not hashable, so only strings are in format_converter
-    format_converter = {'Modern': Modern, 'Legacy': Legacy, 'Pauper': Pauper, 'Standard': Standard,
-                        'Legacy Budget To': LegacyBudgetToTier, 'Pioneer': Pioneer, 'Brawl': Brawl, 'Historic': Historic}
+    format_converter = {'Standard': Standard, 'Brawl': Brawl, 'Historic': Historic,  'Pioneer': Pioneer,
+                        'Modern': Modern, 'Legacy': Legacy, 'Legacy Budget To': LegacyBudgetToTier, 'Pauper': Pauper,
+                        'Vintage': Vintage, 'Cube': Cube, 'Historic Brawl': Historic_Brawl}
 
     if stringa_or_dict == Modern:
         return "Modern"
@@ -204,11 +202,18 @@ def get_format(stringa_or_dict):
         return 'Brawl'
     elif stringa_or_dict == Historic:
         return 'Historic'
+    elif stringa_or_dict == Vintage:
+        return 'Vintage'
+    elif stringa_or_dict == Cube:
+        return 'Cube'
+    elif stringa_or_dict == Historic_Brawl:
+        return 'Historic Brawl'
     elif stringa_or_dict in format_converter:
         return format_converter[stringa_or_dict]
 
 
-def get_db(my_collection, formato, card_prices, sorted_by_value_you_have=True):
+def get_db(my_collection: dict, formato: dict, card_prices: dict, sorted_by_value_you_have=True) -> \
+        List[Dict[str, Union[int, Any]]]:
     """
     Create instances of class Deck for every deck in formato, Return list of dictionaries with deck infos to populate
     html tables.
