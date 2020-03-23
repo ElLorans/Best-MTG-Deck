@@ -122,10 +122,24 @@
             (Arena language must be set to English):
             <br>
             <br>
-            {% for card in deck.list %}
-                {{ card.copies_total }} {{ card.name }} {{ card.arena }}
+            {% if deck.format_name in ('Brawl', 'Historic Brawl') %}
+                Commander
                 <br>
-            {% endfor %}
+                1 {{ deck.name }}
+                <br>
+                <br>
+                Deck
+                <br>
+                {% for card in deck.list[1:] %}
+                    {{ card.copies_total }} {{ card.name }}
+                    <br>
+                {% endfor %}
+            {% else %}
+                {% for card in deck.list %}
+                    {{ card.copies_total }} {{ card.name }}
+                    <br>
+                {% endfor %}
+            {% endif %}
             <br>
             {% for card in deck.list_side %}
                 {{ card.copies_total }} {{ card.name }} {{ card.arena }}
