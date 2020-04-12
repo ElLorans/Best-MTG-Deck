@@ -12,4 +12,4 @@ Support for MTGA included:
 
 ![Decks](https://imgur.com/vHbLq3s)
 
-[Magic: The Gathering](https://en.wikipedia.org/wiki/Magic:_The_Gathering), often shortened to "MTG" is a highly popular trading card game. Since competitive decks are usually fairly stock lists of expensive cards, players need to know how much they need to spend to purchase a competitive deck considering the cards already in their collection. Best-MTG-Deck is a user friendly solution to this need: you only need to insert your collection of MTG cards (e.g.: 4 Tarmogoyf) to obtain a lot of useful information.
+[Magic: The Gathering](https://en.wikipedia.org/wiki/Magic:_The_Gathering), often shortened to "MTG" is a highly popular trading card game. Since competitive decks are usually stock lists of expensive cards (€ 150 onwards) that change once every 3-12 months, players need to know how much they need to spend to purchase a competitive deck considering the cards already in their collection. Best-MTG-Deck is a user friendly solution to this need: you only need to insert your collection of MTG cards (e.g.: 4 Tarmogoyf) to obtain a lot of useful information.
