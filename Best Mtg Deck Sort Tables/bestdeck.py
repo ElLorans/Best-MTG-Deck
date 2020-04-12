@@ -4,15 +4,12 @@ Library to get relevant info from collection and database of MTG Tier decks.
 from typing import List, Union, Any, Dict
 
 from database import Standard, Brawl, Historic, Pioneer, Modern, Legacy, LegacyBudgetToTier, Pauper, Vintage, Cube, \
-                     Historic_Brawl, \
-                     Standard_Sideboards, Historic_Sideboards, Pioneer_Sideboards, Modern_Sideboards, \
-                     Legacy_Sideboards,  LegacyBudgetToTier_Sideboards, Pauper_Sideboards, Vintage_Sideboards
+    Historic_Brawl, \
+    Standard_Sideboards, Historic_Sideboards, Pioneer_Sideboards, Modern_Sideboards, \
+    Legacy_Sideboards, LegacyBudgetToTier_Sideboards, Pauper_Sideboards, Vintage_Sideboards
 from rarity import rarity
 
-# otherwise does not recognise format
-
-basic_lands = {'Forest': '(ELD) 266', 'Swamp': '(ELD) 258', 'Mountain': '(ELD) 262', 'Plains': '(ELD) 250',
-               'Island': '(ELD) 254'}
+BASIC_LANDS = ('Forest', 'Swamp', 'Mountain', 'Plains', 'Island')
 
 
 def merge(dict_1: dict, dict_2) -> dict:
@@ -28,8 +25,8 @@ def merge(dict_1: dict, dict_2) -> dict:
         return dict_2
     summa = dict()
 
-    for key in dict_1.keys() | dict_2.keys():                       # union of all keys
-        summa[key] = dict_1.get(key, 0) + dict_2.get(key, 0)        # sum quantities or 0 if key not found
+    for key in dict_1.keys() | dict_2.keys():  # union of all keys
+        summa[key] = dict_1.get(key, 0) + dict_2.get(key, 0)  # sum quantities or 0 if key not found
 
     return summa
 
@@ -48,7 +45,8 @@ def get_sideboard_dict(format_name):
 
 
 class Deck:
-    def __init__(self, name, mainboard, format_name, formato, coll_dict, card_prices, sideboard=None, arena=False):
+    def __init__(self, name: str, mainboard: dict, format_name: str, formato: dict, coll_dict: dict, card_prices: dict,
+                 sideboard=None):
         """
 
         :param name:
@@ -58,7 +56,6 @@ class Deck:
         :param coll_dict:
         :param card_prices: dict of prices (can be USD or EUR)
         :param sideboard:
-        :param: arena
         """
         self.name = name
         self.mainboard = mainboard  # dict
@@ -67,7 +64,7 @@ class Deck:
                 self.sideboard = get_sideboard_dict(format_name)[name]
             else:
                 self.sideboard = None
-        if arena is True:
+        if format_name in ("Standard", "Brawl", "Historic", "Historic Brawl"):
             self.arena = True
             self.wc = {'Mythic': 0, 'Rare': 0, 'Uncommon': 0, 'Common': 0}
         else:
@@ -78,20 +75,20 @@ class Deck:
         self.formato = formato
         self.collection = coll_dict
         self.total = merge(self.mainboard, self.sideboard)  # sum of dicts
-        self.card_prices = card_prices                  # dict of prices in the right currency (€ or $)
-        self.list = None                                # overwritten by self.detail when url of specific deck is called
+        self.card_prices = card_prices  # dict of prices in the right currency (€ or $)
+        self.list = None  # overwritten by self.detail when url of specific deck is called
         # self.list_side = None       # initialized by self.detail when url of specific deck is called OTHERWISE CRASHES
         self.cards = sum(self.total.values())
 
         # values changed by the loop
-        self.your_cards = 0                             # cards you already have
+        self.your_cards = 0  # cards you already have
         self.price = 0
-        self.your_price = 0                             # price you already have but will become price you need
+        self.your_price = 0  # price you already have but will become price you need
 
         # ONE LOOP TO CHANGE THEM ALL: only one loop could be more efficient than optimizing single operations
 
         for card in self.total:
-            card_name = card    # used in case next block is commented
+            # card_name = card      # uncomment if next if block is commented
 
             # UNCOMMENT IN CASE DATABASE CONTAINS ALL MISSING DOUBLE CARDS
             if " // " in card:
@@ -101,38 +98,39 @@ class Deck:
             else:
                 card_name = card
 
-            self.price += self.total[card] * self.card_prices[card_name.lower()]        # copies * price
+            self.price += self.total[card] * self.card_prices[card_name.lower()]  # copies * price
 
             if self.arena:
-                if card not in basic_lands:                                        # basic land don't matter
+                if card not in BASIC_LANDS:  # basic land don't matter
                     # increase wc for every card.
-                    self.wc[rarity[card_name]] += self.total[card]                      # if lands missing, use next comment
+                    self.wc[rarity[card_name]] += self.total[card]  # if lands missing, use next comment
 
                     # add to rarity: {'Forest': "Basic Land", 'Swamp': "Basic Land", 'Mountain': "Basic Land",
                     # 'Plains': "Basic Land", 'Island': "Basic Land"}
 
             if card.lower() in coll_dict:
-                minimum = min(self.total[card], coll_dict[card.lower()])           # check if more copies than necessary
+                minimum = min(self.total[card], coll_dict[card.lower()])  # check if more copies than necessary
                 self.your_price += minimum * self.card_prices[card_name.lower()]
                 self.your_cards += minimum
-                if self.arena:
-                    if card not in basic_lands:
-                        # reduce wc needed if you have card in coll_dict by min(cards needed, cards in coll_dict)
-                        self.wc[rarity[card]] -= min(self.total[card], coll_dict[card.lower()])
 
-        self.price = int(self.price)                                            # solve Python weird numbers
+                # if self.arena:
+                #     if card not in BASIC_LANDS:
+                # reduce wc needed if you have card in coll_dict by min(cards needed, cards in coll_dict)
+                #         self.wc[rarity[card]] -= min(self.total[card], coll_dict[card.lower()])
+
+        self.price = int(self.price)                         # solve Python weird numbers
         self.cards_you_need = self.cards - self.your_cards
-        self.your_price = int(self.price - self.your_price)                     # now self.your_price is price you need
+        self.your_price = int(self.price - self.your_price)  # now self.your_price is price you need
         self.value_you_own = int((1 - self.your_price / self.price) * 100)
 
-    def add_list(self, main_or_side):
+    def add_list(self, main_or_side) -> list:
         """
         Method used by .detail() method to return list of dicts with info about every card in main_or_side (NOT
         self.total, cuz cards in sideboard could be also in main and screw up).
 
         :param main_or_side: self.mainboard or self.sideboard :example : class.detail() will set
             self.list = self.add_list(self.mainboard)
-        :return :  [
+        :return :  e.g.: [
                     {"name": "mox", "copies_owned": 1, "copies_total": 4, "copies_missing": 3, "price_for_you": 50,
                             "tot_price": 200, "arena": "(DMN) 196", "wildcards": "3 Mythic" },
                     {"name": "knight", "copies_owned": 2, "copies_total": 3, "copies_missing": 1, "price_for_you": 10,
@@ -142,7 +140,6 @@ class Deck:
         """
         info = list()
         for card in main_or_side:
-
             # card_name = card
             if " // " in card:
                 # double cards are often not included in db. Solve by calling only first part
@@ -150,7 +147,6 @@ class Deck:
                 card_name = card.split(" // ")[0]
             else:
                 card_name = card
-
             temp = {'name': card, 'copies_total': main_or_side[card]}
             # if copies > necessary, copies_owned = copies_total
             temp['copies_owned'] = min(self.collection.get(card.lower(), 0), temp['copies_total'])
@@ -182,7 +178,7 @@ def get_format(stringa_or_dict):
     Impure Function
     """
     # dictionaries are not hashable, so only strings are in format_converter
-    format_converter = {'Standard': Standard, 'Brawl': Brawl, 'Historic': Historic,  'Pioneer': Pioneer,
+    format_converter = {'Standard': Standard, 'Brawl': Brawl, 'Historic': Historic, 'Pioneer': Pioneer,
                         'Modern': Modern, 'Legacy': Legacy, 'Legacy Budget To': LegacyBudgetToTier, 'Pauper': Pauper,
                         'Vintage': Vintage, 'Cube': Cube, 'Historic Brawl': Historic_Brawl}
 
@@ -225,7 +221,7 @@ def get_db(my_collection: dict, formato: dict, card_prices: dict, sorted_by_valu
         # nth_deck.detail()
         temp = {'name': nth_deck.name, 'formato': nth_deck.format_name, 'value': nth_deck.value_you_own,
                 'tot_price': nth_deck.price, 'your_price': nth_deck.your_price, 'cards_needed': nth_deck.cards_you_need,
-                'cards_total': nth_deck.cards}
+                'cards_total': nth_deck.cards, 'wc': nth_deck.wc}
 
         db.append(temp)
 
@@ -250,7 +246,7 @@ def price_collection(price_dict: dict, collec_dict: dict) -> dict:
                                     ]
                         }
     """
-    unrec_recognized = {}    # result. dict including list(unrecognized) and list(recognized) cards
+    unrec_recognized = {}  # result. dict including list(unrecognized) and list(recognized) cards
     unrec = []
     recognized = []
     temp = {}
@@ -286,5 +282,6 @@ if __name__ == "__main__":  # test
     collection = {"ancient stirrings": 4}
     test = {"disdainful stroke": 3}
 
-    deck = list(Standard.keys())
-    dk = Deck("Simic Ramp", Standard[deck], "Standard", Standard, collection, prices_eur, arena=True)
+    deck = list(Standard.keys())[0]
+    dk = Deck("Simic Ramp", Standard[deck], "Standard", Standard, collection, prices_eur)
+    import pdb; pdb.set_trace()
