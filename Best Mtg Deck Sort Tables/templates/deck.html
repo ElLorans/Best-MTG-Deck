@@ -6,11 +6,13 @@
             <th>{{ deck.name }}</th>
             <th>Value you own: {{ deck.value_you_own }} %</th>
         </tr>
+        {% if currency != "mtga" %}
         <tr>
             <th>Tot Price ({{ currency |safe }})</th>
             <th>Your Price ({{ currency |safe }})</th>
             <th>Copies you need</th>
         </tr>
+        {% endif %}
         <tr>
             <td>{{ deck.price }}</td>
             <td>{{ deck.your_price }}</td>
@@ -145,28 +147,32 @@
                 {{ card.copies_total }} {{ card.name }} {{ card.arena }}
                 <br>
             {% endfor %}
-            <h3>Paper:</h3>
+
         {% endif %}
-        <p>
-            Building {{ deck.name }} should cost you about {{ deck.your_price }} {{ currency |safe }}
-            (Prices are calculated as mkm price trend). Here are the missing cards you need to complete it:
-        </p>
 
-        <p>
-            {% for card in deck.list %}
-                {% if card.copies_missing != 0 %}
-                    {{ card.copies_missing }} {{ card.name }}
-                    <br>
-                {% endif %}
+        {% if currency != "mtga" %}
+            <h3>Paper:</h3>
+            <p>
+                Building {{ deck.name }} should cost you about {{ deck.your_price }} {{ currency |safe }}
+                (Prices are calculated as mkm price trend). Here are the missing cards you need to complete it:
+            </p>
 
-            {% endfor %}
-            <br>
-            {% for card in deck.list_side %}
-                {% if card.copies_missing != 0 %}
-                    {{ card.copies_missing }} {{ card.name }}
-                    <br>
-                {% endif %}
-            {% endfor %}
+            <p>
+                {% for card in deck.list %}
+                    {% if card.copies_missing != 0 %}
+                        {{ card.copies_missing }} {{ card.name }}
+                        <br>
+                    {% endif %}
+
+                {% endfor %}
+                <br>
+                {% for card in deck.list_side %}
+                    {% if card.copies_missing != 0 %}
+                        {{ card.copies_missing }} {{ card.name }}
+                        <br>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
         </p>
     </div>
 {% endblock content %}

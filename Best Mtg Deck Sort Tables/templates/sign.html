@@ -16,25 +16,27 @@
             <label>
                 <input type="checkbox" name="dollars" value="/Standard/$" onclick="formaction(this)">
             </label> Prices in USD
+            <br>
+            <label>
+                <input type="checkbox" name="mtga" value="/Standard/mtga" onclick="formaction(this)">
+            </label> MTGA
 
         </form>
-    <script>
-    function formaction(checkbox){
-        if (checkbox.checked === true)
-        {
-            document.getElementById("myForm").action = checkbox.value;
-        }
-        if (checkbox.checked === false)
-        {
-            document.getElementById("myForm").action = "/Standard/€";
-        }
-    }
-
-    </script>
+        <script>
+            function formaction(checkbox) {
+                if (checkbox.checked === true) {
+                    document.getElementById("myForm").action = checkbox.value;
+                    for (var i = 0; i < document.getElementById("myForm").length; i++) {
+                        document.getElementById("myForm")[i].checked = false;
+                    }
+                    checkbox.checked = true;
+                }
+                if (checkbox.checked === false) {
+                    document.getElementById("myForm").action = "/Standard/€";
+                }
+            }
+        </script>
     </div>
-
     </body>
-
-
 
 {% endblock content %}

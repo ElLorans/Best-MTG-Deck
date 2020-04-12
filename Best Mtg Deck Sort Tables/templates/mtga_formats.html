@@ -8,20 +8,6 @@
      <a href='/Brawl/{{ currency |safe }} ' > Brawl </a>
     |
      <a href='/Historic Brawl/{{ currency |safe }} ' > Historic Brawl </a>
-    |
-     <a href='/Pioneer/{{ currency |safe }} ' > Pioneer </a>
-    |
-    <a href='/Modern/{{ currency |safe }} ' > Modern </a>
-    |
-     <a href='/Legacy/{{ currency |safe }} ' > Legacy </a>
-    |
-     <a href='/Legacy Budget To/{{ currency |safe }} ' > Legacy Budget To Tier </a>
-    |
-     <a href='/Vintage/{{ currency |safe }} ' > Vintage </a>
-    |
-     <a href='/Pauper/{{ currency |safe }} ' > Pauper </a>
-    |
-     <a href='/Cube/{{ currency |safe }} ' > Cube </a>
 
     <br>
     <br>
@@ -35,18 +21,20 @@
     <table id="customers" class="sortable">
         <tr>
             <th>Deck:</th>
-            <th>Value you own %</th>
-            <th>Tot price ({{ currency |safe }})</th>
-            <th>Your Price ({{ currency |safe }})</th>
+            <th>Mythics</th>
+            <th>Rare</th>
+            <th>Uncommon</th>
+            <th>Common</th>
             <th>Cards you need</th>
             <th>Tot Cards</th>
         </tr>
         {% for deck in formato %}
             <tr>
                 <td><a href='/calc/{{ format_name }}/{{ deck.name }}/{{ currency |safe }}'> {{ deck.name }} </a></td>
-                <td> {{ deck.value }} </td>
-                <td> {{ deck.tot_price }} </td>
-                <td> {{ deck.your_price }} </td>
+                <td> {{ deck["wc"]["Mythic"] }} </td>
+                <td> {{ deck["wc"]["Rare"] }} </td>
+                <td> {{ deck["wc"]["Uncommon"] }} </td>
+                <td> {{ deck["wc"]["Common"] }} </td>
                 <td> {{ deck.cards_needed }} </td>
                 <td>{{ deck.cards_total }} </td>
             </tr>
