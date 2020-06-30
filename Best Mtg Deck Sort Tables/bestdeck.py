@@ -4,9 +4,9 @@ Library to get relevant info from collection and database of MTG Tier decks.
 from typing import List, Union, Any, Dict
 
 from database import Standard, Brawl, Historic, Pioneer, Modern, Legacy, LegacyBudgetToTier, Pauper, Vintage, Cube, \
-    Historic_Brawl, \
+    Historic_Brawl, Commander, Commander_1v1,\
     Standard_Sideboards, Historic_Sideboards, Pioneer_Sideboards, Modern_Sideboards, \
-    Legacy_Sideboards, LegacyBudgetToTier_Sideboards, Pauper_Sideboards, Vintage_Sideboards
+    Legacy_Sideboards, LegacyBudgetToTier_Sideboards, Pauper_Sideboards, Vintage_Sideboards, Commander_1v1_Sideboards
 from rarity import rarity
 
 BASIC_LANDS = ('Forest', 'Swamp', 'Mountain', 'Plains', 'Island')
@@ -40,7 +40,7 @@ def get_sideboard_dict(format_name):
     str_to_side = {"Legacy": Legacy_Sideboards, "Standard": Standard_Sideboards, "Modern": Modern_Sideboards,
                    "Pauper": Pauper_Sideboards, "Pioneer": Pioneer_Sideboards,
                    "Legacy Budget To": LegacyBudgetToTier_Sideboards, "Historic": Historic_Sideboards,
-                   "Vintage": Vintage_Sideboards}
+                   "Vintage": Vintage_Sideboards, "Commander 1vs1": Commander_1v1_Sideboards}
     return str_to_side.get(format_name)
 
 
@@ -48,8 +48,8 @@ class Deck:
     def __init__(self, name: str, mainboard: dict, format_name: str, formato: dict, coll_dict: dict, card_prices: dict,
                  sideboard=None):
         """
-
-        :param name:
+        Do all calculations on MTG deck given coll_dict.
+        :param name: (e.g.: 'Tron')
         :param mainboard:
         :param format_name: string (e.g.: 'Modern')
         :param formato:     dict (e.g.: Modern)
@@ -66,7 +66,7 @@ class Deck:
                 self.sideboard = None
         if format_name in ("Standard", "Brawl", "Historic", "Historic Brawl"):
             self.arena = True
-            self.wc = {'Mythic': 0, 'Rare': 0, 'Uncommon': 0, 'Common': 0}
+            self.wc = {'Mythic': 0, 'Rare': 0, 'Uncommon': 0, 'Common': 0}     # wc YOU NEED
         else:
             self.arena = False
             self.wc = None
@@ -75,48 +75,41 @@ class Deck:
         self.formato = formato
         self.collection = coll_dict
         self.total = merge(self.mainboard, self.sideboard)  # sum of dicts
-        self.card_prices = card_prices  # dict of prices in the right currency (€ or $)
-        self.list = None  # overwritten by self.detail when url of specific deck is called
-        # self.list_side = None       # initialized by self.detail when url of specific deck is called OTHERWISE CRASHES
+        self.card_prices = card_prices              # dict of prices in the right currency (€ or $)
+        self.list = None                            # overwritten by self.detail when url of specific deck is called
         self.cards = sum(self.total.values())
 
         # values changed by the loop
-        self.your_cards = 0  # cards you already have
+        self.your_cards = 0                     # cards you already have
         self.price = 0
-        self.your_price = 0  # price you already have but will become price you need
+        self.your_price = 0                     # price you already have but will become price you need
 
         # ONE LOOP TO CHANGE THEM ALL: only one loop could be more efficient than optimizing single operations
-
         for card in self.total:
-            # card_name = card      # uncomment if next if block is commented
+            card_lower = card.lower()
 
-            # UNCOMMENT IN CASE DATABASE CONTAINS ALL MISSING DOUBLE CARDS
-            if " // " in card:
-                # double cards are often not included in db. Solve by calling only first part
-                # e.g.: "status // statue" becomes "status"
-                card_name = card.split(" // ")[0]
-            else:
-                card_name = card
+            # double cards are often not included in decklist or in prices_eur.
+            # Solve by calling card_prices of only first part e.g.: "status // statue" becomes "status"
+            self.price += self.total[card] * self.card_prices.get(card_lower, self.card_prices[card_lower.split(" // ")[0]])
 
-            self.price += self.total[card] * self.card_prices[card_name.lower()]  # copies * price
+            if self.arena is True and card not in BASIC_LANDS:  # basic land don't matter
+                # increase wc count for every card.
+                # self.wc[rarity[card]] += self.total[card]  # if lands missing, use next comment
+                self.wc[rarity.get(card, rarity[card.split(" // ")[0]])] += self.total[card]
 
-            if self.arena:
-                if card not in BASIC_LANDS:  # basic land don't matter
-                    # increase wc for every card.
-                    self.wc[rarity[card_name]] += self.total[card]  # if lands missing, use next comment
-
-                    # add to rarity: {'Forest': "Basic Land", 'Swamp': "Basic Land", 'Mountain': "Basic Land",
-                    # 'Plains': "Basic Land", 'Island': "Basic Land"}
+                # add to rarity: {'Forest': "Basic Land", 'Swamp': "Basic Land", 'Mountain': "Basic Land",
+                # 'Plains': "Basic Land", 'Island': "Basic Land"}
 
             if card.lower() in coll_dict:
                 minimum = min(self.total[card], coll_dict[card.lower()])  # check if more copies than necessary
-                self.your_price += minimum * self.card_prices[card_name.lower()]
                 self.your_cards += minimum
+                # self.your_price += minimum * self.card_prices[card_name.lower()]
+                self.your_price += minimum * self.card_prices.get(card_lower,
+                                                                  self.card_prices[card_lower.split(" // ")[0]])
 
-                # if self.arena:
-                #     if card not in BASIC_LANDS:
-                # reduce wc needed if you have card in coll_dict by min(cards needed, cards in coll_dict)
-                #         self.wc[rarity[card]] -= min(self.total[card], coll_dict[card.lower()])
+                if self.arena is True and card not in BASIC_LANDS:
+                    # reduce wc needed if you have card in coll_dict by min(cards needed, cards in coll_dict)
+                    self.wc[rarity[card]] -= min(self.total[card], coll_dict[card.lower()])
 
         self.price = int(self.price)                         # solve Python weird numbers
         self.cards_you_need = self.cards - self.your_cards
@@ -180,9 +173,13 @@ def get_format(stringa_or_dict):
     # dictionaries are not hashable, so only strings are in format_converter
     format_converter = {'Standard': Standard, 'Brawl': Brawl, 'Historic': Historic, 'Pioneer': Pioneer,
                         'Modern': Modern, 'Legacy': Legacy, 'Legacy Budget To': LegacyBudgetToTier, 'Pauper': Pauper,
-                        'Vintage': Vintage, 'Cube': Cube, 'Historic Brawl': Historic_Brawl}
+                        'Vintage': Vintage, 'Cube': Cube, 'Historic Brawl': Historic_Brawl,
+                        'Commander 1v1': Commander_1v1, 'Commander': Commander}
 
-    if stringa_or_dict == Modern:
+    if isinstance(stringa_or_dict, str):
+        return format_converter[stringa_or_dict]
+
+    elif stringa_or_dict == Modern:
         return "Modern"
     elif stringa_or_dict == Legacy:
         return "Legacy"
@@ -204,8 +201,10 @@ def get_format(stringa_or_dict):
         return 'Cube'
     elif stringa_or_dict == Historic_Brawl:
         return 'Historic Brawl'
-    elif stringa_or_dict in format_converter:
-        return format_converter[stringa_or_dict]
+    elif stringa_or_dict == Commander_1v1:
+        return 'Commander 1v1'
+    elif stringa_or_dict == Commander:
+        return 'Commander'
 
 
 def get_db(my_collection: dict, formato: dict, card_prices: dict, sorted_by_value_you_have=True) -> \
@@ -256,7 +255,7 @@ def price_collection(price_dict: dict, collec_dict: dict) -> dict:
     for card in collec_dict.keys():
         if card in price_dict.keys():
             tot_copies = tot_copies + collec_dict[card]
-            different_cards = different_cards + 1
+            different_cards += 1
             temp["name"] = card
             temp["copies"] = collec_dict[card]
             temp["price"] = price_dict[card]
@@ -279,9 +278,10 @@ def price_collection(price_dict: dict, collec_dict: dict) -> dict:
 if __name__ == "__main__":  # test
     from prices_eur import prices_eur
 
-    collection = {"ancient stirrings": 4}
+    collection = {"ancient stirrings": 4, "kroxa, titan of death's hunger": 4}
     test = {"disdainful stroke": 3}
 
     deck = list(Standard.keys())[0]
-    dk = Deck("Simic Ramp", Standard[deck], "Standard", Standard, collection, prices_eur)
+    #dk = Deck("Bant Ramp", Standard[deck], "Standard", Standard, collection, prices_eur)
+    formato = get_db(collection, get_format("Standard"), prices_eur)
     import pdb; pdb.set_trace()
