@@ -28,38 +28,39 @@ def get_currency(wk_local_proxy) -> (str, dict):
     return currency_html, card_prices
 
 
-def str_to_collection(string: str) -> dict:
+def str_to_collection(string: str, add_basics=True) -> dict:
     """
     Get form with coll_dict.
     """
-    collection = dict()                             # create dict with user input
-    comment = string.lower()                        # ignores capitalization
-    comment = comment.replace("  ", " ")            # removes double spaces
-    comment = comment.replace("\t", " ")            # removes tab
-    comment = comment.split("\n")                   # separates lines
-    for line in comment:                            # comment is now a list, elems (lines) are strings
-        if len(line) > 2:                           # ignore empty lines/wrong format
-            line = line.strip()                     # remove white spaces at end and beginning
+    collection = dict()  # create dict with user input
+    comment = string.lower()  # ignores capitalization
+    comment = comment.replace("  ", " ")  # removes double spaces
+    comment = comment.replace("\t", " ")  # removes tab
+    comment = comment.split("\n")  # separates lines
+    for line in comment:  # comment is now a list, elems (lines) are strings
+        if len(line) > 2:  # ignore empty lines/wrong format
+            line = line.strip()  # remove white spaces at end and beginning
             try:
-                if line[0].isdigit():               # if format: 1 tarmogoyf
-                    line = line.split(" ", 1)       # creates 1 list per line with 2 elem: number and name
-                    if line[1] in collection:       # merges cards already in coll_dict
+                if line[0].isdigit():  # if format: 1 tarmogoyf
+                    line = line.split(" ", 1)  # creates 1 list per line with 2 elem: number and name
+                    if line[1] in collection:  # merges cards already in coll_dict
                         collection[line[1]] = collection[line[1]] + int(line[0])
                     else:
                         collection[line[1]] = int(line[0])
-                elif line[0].isalpha():             # if format: tarmogoyf 1
-                    line = line.split(" ")          # creates 1 list per line with n elem: names and number
-                    name = " ".join(line[:-1])      # joins all elems in list excep number
-                    if name in collection:          # merges cards already in coll_dict
+                elif line[0].isalpha():  # if format: tarmogoyf 1
+                    line = line.split(" ")  # creates 1 list per line with n elem: names and number
+                    name = " ".join(line[:-1])  # joins all elems in list excep number
+                    if name in collection:  # merges cards already in coll_dict
                         collection[name] = collection[name] + int(line[-1])
                     else:
                         collection[name] = int(line[-1])
-                collection["swamp"] = 25
-                collection["island"] = 25
-                collection["plains"] = 25
-                collection["mountain"] = 25
-                collection["forest"] = 25
-            except IndexError:                       # tries to find error
+                if add_basics is True:
+                    collection["swamp"] = 25
+                    collection["island"] = 25
+                    collection["plains"] = 25
+                    collection["mountain"] = 25
+                    collection["forest"] = 25
+            except IndexError:  # tries to find error
                 raise IndexError(line[0])
             except ValueError:
                 raise ValueError(line[0])
@@ -91,7 +92,7 @@ def show_single_format(format_name, currency="€"):
     try:
         with open("collections.json") as data:
             collections = json.load(data)
-    except:                                 # if collections.json is too big, create a new one
+    except:  # if collections.json is too big, create a new one
         empty_dict = {"a": 1}
         with open("collections.json", "w") as data:
             json.dump(empty_dict, data)
@@ -109,9 +110,14 @@ def show_single_format(format_name, currency="€"):
             mistake = str(err.args[0])
             return render_template("wrongformat.html", error=mistake)
 
-    else:     # elif request.method == "GET":
+    else:  # elif request.method == "GET":
         if 'user_code' in session:
-            collection = collections[session["user_code"]]
+            try:
+                collection = collections[session["user_code"]]
+            except KeyError:
+                print(f"Error on url /calc/{format_name}/{currency}: Lost collection of {session['user_code']}",
+                      file=sys.stderr)
+                return render_template("lostcollection.html")
         else:
             collection = {"island": 25, "mountain": 25, "swamp": 25, "plains": 25, "forest": 25}
 
@@ -167,16 +173,16 @@ def calc(format_name, deck_name, currency):
 
         return render_template("deck.html", deck=dk, title=deck_name, currency=currency)
 
-    except KeyError:
-        # if user changes deck_name in url / cannot find deck
-        print(f"Missing Deck: {format_name} {deck_name}", file=sys.stderr)
-        return render_template("wrongformat.html",
-                               error="This deck does not exist. The requested URL was not found on the server and")
+    # except KeyError:
+    #     # if user changes deck_name in url / cannot find deck
+    #     print(f"Error on url /calc/{format_name}/{deck_name}/{currency}: Missing Deck", file=sys.stderr)
+    #     return render_template("wrongformat.html",
+    #                            error=f"{format_name} does not contain {deck_name} or does not contain {deck_name} anymore. The requested URL was not found on the server.")
     except TypeError:
         # if user changes format_name in url / cannot find format_name (Type Error is raised by get_formato() )
-        print(f"Missing format: {format_name}", file=sys.stderr)
+        print(f"Error on url /calc/{format_name}/{deck_name}/{currency}: {format_name} not found", file=sys.stderr)
         return render_template("wrongformat.html",
-                               error="This format does not exist. The requested URL was not found on the server and")
+                               error=f"{format_name} does not exist. The requested URL was not found on the server.")
 
 
 @app.route("/value")
@@ -187,7 +193,7 @@ def values():
 @app.route("/value_result", methods=["POST"])
 def evaluate():
     try:
-        collection = str_to_collection(request.form["comment"])
+        collection = str_to_collection(request.form["comment"], add_basics=False)
     except (IndexError, ValueError) as err:
         mistake = str(err.args[0][0])  # err.args = (["aaa"])  err.args[0] = ["aaa"]
         return render_template("wrongformat.html", error=mistake)
@@ -197,10 +203,10 @@ def evaluate():
     return render_template("your_value.html", value=price_collection(prices, collection), currency=currency_html)
 
 
-@app.route("/download")
+@app.route("/download1.0")
 def download_file():
-    return send_file("outputs/OrensMTGA-EasyExporterV0.6.exe", mimetype="exe",
-                     attachment_filename="OrensMTGA-EasyExporterV0.6.exe", as_attachment=True)
+    return send_file("outputs/OrensMTGA-EasyExporterV1.0.exe", mimetype="exe",
+                     attachment_filename="OrensMTGA-EasyExporterV1.0.exe", as_attachment=True)
 
 
 @app.errorhandler(404)
