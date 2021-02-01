@@ -1,5 +1,8 @@
 # Best-MTG-Deck
-Flask app that takes list of cards as an input and shows how much you should spend to build every MTG Tier deck. 
+
+[Magic: The Gathering](https://en.wikipedia.org/wiki/Magic:_The_Gathering), (MTG) is a highly popular trading card game. Since competitive decks used in tournaments are usually expensive stock lists of cards (€ 150 upwards) that change once every 3-12 months, players need to know how much they need to spend to purchase a competitive deck, considering the cards already in their collection. Best-MTG-Deck is a user friendly solution to this need: you only need to insert your collection of MTG cards (e.g.: 4 Tarmogoyf) to obtain a lot of useful information.
+
+Flask web app that takes list of cards as an input and shows how much you should spend to build every MTG Tier deck. 
 Support for MTGA included:
   User can download an exe that exports MTGA collection both on a txt file and on the clipboard;
   Decks that can be used on MTGA can be easily imported on the game from the website
@@ -11,5 +14,3 @@ Support for MTGA included:
 ![Insert collection](https://i.imgur.com/qopN4RB.png)
 
 ![Decks](https://i.imgur.com/vHbLq3s.png)
-
-[Magic: The Gathering](https://en.wikipedia.org/wiki/Magic:_The_Gathering), (MTG) is a highly popular trading card game. Since competitive decks used in tournaments are usually expensive stock lists of cards (€ 150 upwards) that change once every 3-12 months, players need to know how much they need to spend to purchase a competitive deck, considering the cards already in their collection. Best-MTG-Deck is a user friendly solution to this need: you only need to insert your collection of MTG cards (e.g.: 4 Tarmogoyf) to obtain a lot of useful information.
