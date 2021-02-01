@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+{% block content %}
+    <body>
+    <div class="jumbotron">
+        <h1>OOPSS!</h1>
+
+        <h2>We Lost your Collection!</h2>
+    </div>
+    <div class="page-header">
+    </div>
+    <div class="well">
+        Go back to the <a type="button" class="btn btn-link" href="{{ url_for('home') }}">home page</a>
+            to insert your collection again. <br>
+
+            Sorry for the inconvenience! <br>
+            Drop me an email at <b>bestdeckforyou@gmail.com</b> and I'll solve the problem so that it doesn't happen anymore!
+        </p>
+    </div>
+
+    </body>
+{% endblock content %}

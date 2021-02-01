@@ -154,7 +154,13 @@
             <h3>Paper:</h3>
             <p>
                 Building {{ deck.name }} should cost you about {{ deck.your_price }} {{ currency |safe }}
-                (Prices are calculated as mkm price trend). Here are the missing cards you need to complete it:
+                (Prices are calculated as
+                {%  if currency == "€" %}
+                    mkm price trend
+                {% elif currency == "$" %}
+                    tcg market price
+                {% endif %}
+                ). Here are the missing cards you need to complete it:
             </p>
 
             <p>
