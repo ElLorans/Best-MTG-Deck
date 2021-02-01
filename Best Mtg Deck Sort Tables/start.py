@@ -13,6 +13,9 @@ from prices_eur import prices_eur
 from prices_usd import prices_usd
 
 
+BASIC_LANDS = {"island": 25, "mountain": 25, "swamp": 25, "plains": 25, "forest": 25}
+
+
 def get_currency(wk_local_proxy) -> (str, dict):
     """
     Get tuple of str for html page and dict of prices.
@@ -32,34 +35,30 @@ def str_to_collection(string: str, add_basics=True) -> dict:
     """
     Get form with coll_dict.
     """
-    collection = dict()  # create dict with user input
-    comment = string.lower()  # ignores capitalization
-    comment = comment.replace("  ", " ")  # removes double spaces
-    comment = comment.replace("\t", " ")  # removes tab
-    comment = comment.split("\n")  # separates lines
-    for line in comment:  # comment is now a list, elems (lines) are strings
-        if len(line) > 2:  # ignore empty lines/wrong format
-            line = line.strip()  # remove white spaces at end and beginning
+    collection = dict()                                 # create dict with user input
+    comment = string.lower()
+    comment = comment.replace("  ", " ")                # removes double spaces
+    comment = comment.replace("\t", " ")
+    comment = comment.split("\n")                       # separates lines
+    for line in comment:                                # comment is now a list, elems (lines) are strings
+        if len(line) > 2:                               # ignore empty lines/wrong format
+            line = line.strip()                         # remove white spaces at end and beginning
             try:
-                if line[0].isdigit():  # if format: 1 tarmogoyf
-                    line = line.split(" ", 1)  # creates 1 list per line with 2 elem: number and name
-                    if line[1] in collection:  # merges cards already in coll_dict
-                        collection[line[1]] = collection[line[1]] + int(line[0])
+                if line[0].isdigit():                   # if format: 1 tarmogoyf
+                    line = line.split(" ", 1)           # creates 1 list per line with 2 elem: number and name
+                    if line[1] in collection:           # merges cards already in coll_dict
+                        collection[line[1]] += int(line[0])
                     else:
                         collection[line[1]] = int(line[0])
-                elif line[0].isalpha():  # if format: tarmogoyf 1
-                    line = line.split(" ")  # creates 1 list per line with n elem: names and number
-                    name = " ".join(line[:-1])  # joins all elems in list excep number
-                    if name in collection:  # merges cards already in coll_dict
-                        collection[name] = collection[name] + int(line[-1])
+                elif line[0].isalpha():                 # if format: tarmogoyf 1
+                    line = line.split(" ")              # creates 1 list per line with n elem: names and number
+                    name = " ".join(line[:-1])          # joins all elems in list excep number
+                    if name in collection:              # merges cards already in coll_dict
+                        collection[name] += int(line[-1])
                     else:
                         collection[name] = int(line[-1])
                 if add_basics is True:
-                    collection["swamp"] = 25
-                    collection["island"] = 25
-                    collection["plains"] = 25
-                    collection["mountain"] = 25
-                    collection["forest"] = 25
+                    collection.update(BASIC_LANDS)
             except IndexError:  # tries to find error
                 raise IndexError(line[0])
             except ValueError:
@@ -67,10 +66,9 @@ def str_to_collection(string: str, add_basics=True) -> dict:
     return collection
 
 
-# initialize website
-app = Flask(__name__)
+app = Flask(__name__)  # initialize website
 
-# cryptography for cookie where collection is stored
+# cryptography for cookie used as key of stored collections dict
 app.secret_key = os.getenv("SECRET KEY", b':\xafq\x87\xe0\x12\xbfU\xeeC\x9b\x17\xcfs\xaf)')
 
 
@@ -92,6 +90,7 @@ def show_single_format(format_name, currency="€"):
     try:
         with open("collections.json") as data:
             collections = json.load(data)
+
     except:  # if collections.json is too big, create a new one
         empty_dict = {"a": 1}
         with open("collections.json", "w") as data:
@@ -99,6 +98,7 @@ def show_single_format(format_name, currency="€"):
         collections = dict()
 
     if request.method == "POST":
+        # save collection
         try:
             # comment is name of inp box where user inserts collection
             collection = str_to_collection(request.form["comment"])
@@ -111,6 +111,7 @@ def show_single_format(format_name, currency="€"):
             return render_template("wrongformat.html", error=mistake)
 
     else:  # elif request.method == "GET":
+        # retrieve collection
         if 'user_code' in session:
             try:
                 collection = collections[session["user_code"]]
@@ -119,7 +120,7 @@ def show_single_format(format_name, currency="€"):
                       file=sys.stderr)
                 return render_template("lostcollection.html")
         else:
-            collection = {"island": 25, "mountain": 25, "swamp": 25, "plains": 25, "forest": 25}
+            collection = BASIC_LANDS
 
     if currency == "€":
         card_prices = prices_eur
@@ -149,10 +150,9 @@ def calc(format_name, deck_name, currency):
     try:
         with open("collections.json") as data:
             collections = json.load(data)
-    except:  # if collections.json is too big, create a new one
-        empty_dict = {"a": 1}
+    except:                                             # if collections.json is too big, create a new one
         with open("collections.json", "w") as data:
-            json.dump(empty_dict, data)
+            json.dump({"a": 1}, data)
         collections = dict()
 
     if currency == "$":
@@ -160,11 +160,10 @@ def calc(format_name, deck_name, currency):
     else:
         prices = prices_eur
 
-    # if "collection" in session:
     if "user_code" in session:
         collection = collections[session["user_code"]]
     else:
-        collection = {"island": 25, "mountain": 25, "swamp": 25, "plains": 25, "forest": 25}
+        collection = BASIC_LANDS
 
     try:
         dk = Deck(deck_name, get_format(format_name)[deck_name], format_name, get_format(format_name), collection,
@@ -175,7 +174,7 @@ def calc(format_name, deck_name, currency):
 
     except KeyError:
         # if user changes deck_name in url / cannot find deck
-        print(f"Error on url /calc/{format_name}/{deck_name}/{currency}: Missing Deck", file=sys.stderr)
+        # print(f"Error on url /calc/{format_name}/{deck_name}/{currency}: Missing Deck", file=sys.stderr)
         return render_template("wrongformat.html",
                                error=f"{format_name} does not contain {deck_name} or does not contain {deck_name} "
                                      f"anymore. The requested URL was not found on the server.")
@@ -196,18 +195,17 @@ def evaluate():
     try:
         collection = str_to_collection(request.form["comment"], add_basics=False)
     except (IndexError, ValueError) as err:
-        mistake = str(err.args[0][0])  # err.args = (["aaa"])  err.args[0] = ["aaa"]
+        mistake = str(err.args[0][0])               # err.args = (["aaa"])  err.args[0] = ["aaa"]
         return render_template("wrongformat.html", error=mistake)
-
     currency_html, prices = get_currency(request)
 
     return render_template("your_value.html", value=price_collection(prices, collection), currency=currency_html)
 
 
-@app.route("/download1.0")
+@app.route("/download1.2")
 def download_file():
-    return send_file("outputs/OrensMTGA-EasyExporterV1.0.exe", mimetype="exe",
-                     attachment_filename="OrensMTGA-EasyExporterV1.0.exe", as_attachment=True)
+    return send_file("outputs/OrensMTGA-EasyExporterV1.2.exe", mimetype="exe",
+                     attachment_filename="OrensMTGA-EasyExporterV1.2.exe", as_attachment=True)
 
 
 @app.errorhandler(404)
