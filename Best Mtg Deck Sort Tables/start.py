@@ -12,7 +12,6 @@ from bestdeck import price_collection, get_db, Deck, get_format
 from prices_eur import prices_eur
 from prices_usd import prices_usd
 
-
 BASIC_LANDS = {"island": 25, "mountain": 25, "swamp": 25, "plains": 25, "forest": 25}
 
 
@@ -35,28 +34,21 @@ def str_to_collection(string: str, add_basics=True) -> dict:
     """
     Get form with coll_dict.
     """
-    collection = dict()                                 # create dict with user input
-    comment = string.lower()
-    comment = comment.replace("  ", " ")                # removes double spaces
-    comment = comment.replace("\t", " ")
-    comment = comment.split("\n")                       # separates lines
-    for line in comment:                                # comment is now a list, elems (lines) are strings
-        if len(line) > 2:                               # ignore empty lines/wrong format
-            line = line.strip()                         # remove white spaces at end and beginning
+    collection = dict()  # dict with user input
+    comment = string.lower().replace("  ", " ").replace("\t", " ").splitlines()
+    for line in comment:  # comment is now a list, elems (lines) are strings
+        if len(line) > 2:  # ignore empty lines/wrong format
+            line = line.strip()  # remove white spaces at end and beginning
             try:
-                if line[0].isdigit():                   # if format: 1 tarmogoyf
-                    line = line.split(" ", 1)           # creates 1 list per line with 2 elem: number and name
-                    if line[1] in collection:           # merges cards already in coll_dict
-                        collection[line[1]] += int(line[0])
-                    else:
-                        collection[line[1]] = int(line[0])
-                elif line[0].isalpha():                 # if format: tarmogoyf 1
-                    line = line.split(" ")              # creates 1 list per line with n elem: names and number
-                    name = " ".join(line[:-1])          # joins all elems in list excep number
-                    if name in collection:              # merges cards already in coll_dict
-                        collection[name] += int(line[-1])
-                    else:
-                        collection[name] = int(line[-1])
+                if line[0].isdigit():  # if format: 1 tarmogoyf
+                    line = line.split(" ", 1)  # creates 1 list per line with 2 elem: number and name
+                    # merges cards already in coll_dict
+                    collection[line[1]] = collection.get(line[1], 0) + int(line[0])
+                elif line[0].isalpha():  # if format: tarmogoyf 1
+                    line = line.split(" ")  # creates 1 list per line with n elem: names and number
+                    name = " ".join(line[:-1])  # joins all elems in list excep number
+                    # merges cards already in coll_dict
+                    collection[name] = collection.get(name, 0) + int(line[-1])
                 if add_basics is True:
                     collection.update(BASIC_LANDS)
             except IndexError:  # tries to find error
@@ -150,18 +142,20 @@ def calc(format_name, deck_name, currency):
     try:
         with open("collections.json") as data:
             collections = json.load(data)
-    except:                                             # if collections.json is too big, create a new one
+    except:  # if collections.json is too big, create a new one
         with open("collections.json", "w") as data:
             json.dump({"a": 1}, data)
         collections = dict()
 
-    if currency == "$":
-        prices = prices_usd
-    else:
-        prices = prices_eur
+    prices = prices_usd if currency == "$" else prices_eur
 
     if "user_code" in session:
-        collection = collections[session["user_code"]]
+        try:
+            collection = collections[session["user_code"]]
+        except KeyError:
+            print(f"Error on url /calc/{format_name}/{currency}: Lost collection of {session['user_code']}",
+                  file=sys.stderr)
+            return render_template("lostcollection.html")
     else:
         collection = BASIC_LANDS
 
@@ -195,11 +189,30 @@ def evaluate():
     try:
         collection = str_to_collection(request.form["comment"], add_basics=False)
     except (IndexError, ValueError) as err:
-        mistake = str(err.args[0][0])               # err.args = (["aaa"])  err.args[0] = ["aaa"]
+        mistake = str(err.args[0][0])  # err.args = (["aaa"])  err.args[0] = ["aaa"]
         return render_template("wrongformat.html", error=mistake)
     currency_html, prices = get_currency(request)
 
     return render_template("your_value.html", value=price_collection(prices, collection), currency=currency_html)
+
+
+@app.route("/decklist_formatter", methods=["POST", "GET"])
+def page_decklist_formatter():
+    if request.method == "GET":
+        return render_template("decklist_formatter.html",
+                               previous_user_info="",
+                               parsed_output="")
+    from format_deck import deck_formatter
+    formatted_deck = deck_formatter(
+        cards=request.form['comment'].lower().replace("  ", " ").replace("\t", " ").replace("\r", ""),
+        deck_name=request.form['info_deck_name'],
+        player_name=request.form['info_player_name'],
+        event_name=request.form['info_event_name'],
+        role=request.form["info_player_role"],
+        note=request.form['info_note_redazione'])
+    return render_template("decklist_formatter.html",
+                           previous_user_info=request.form['comment'],
+                           parsed_output=formatted_deck)
 
 
 @app.route("/download1.2")
