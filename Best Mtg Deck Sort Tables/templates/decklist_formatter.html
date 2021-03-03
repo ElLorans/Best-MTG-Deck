@@ -8,38 +8,30 @@
 </div>
 
 <div class="container">
-
     <form class="form-signin" method="post" action="/decklist_formatter">
         <fieldset>
             <legend>Additional information</legend>
-            <table class="form_table">
-                <tbody>
-                <tr>
-                    <th><label for="frm_info_deck_name">Deck name:</label></th>
-                    <td><input type="text" name="info_deck_name" id="frm_info_deck_name" value=""></td>
-                    <th><label for="frm_info_player_name">Player name:</label></th>
-                    <td><input type="text" name="info_player_name" id="frm_info_player_name" value=""></td>
-                </tr>
-                <tr>
-                    <th><label for="frm_info_event_name">Event name:</label></th>
-                    <td><input type="text" name="info_event_name" id="frm_info_event_name" value=""></td>
-                    <th><label for="frm_info_player_role">Role:</label></th>
-                    <td><select name="info_player_role" id="frm_info_player_role" size="1" class="form_select">
-                        <option value="" selected="selected"></option>
-                        <option value="Winner">Winner</option>
-                        <option value="Finalist">Finalist</option>
-                        <option value="Top 4">Top 4</option>
-                        <option value="Top 8">Top 8</option>
-                        <option value="Top 16">Top 16</option>
-                    </select></td>
-                </tr>
-                <tr>
-                    <th><label for="frm_info_note_redazione">Note redazione:</label></th>
-                    <td colspan="3"><input type="text" name="info_note_redazione" id="frm_info_note_redazione"
-                                           size="60" value=""></td>
-                </tr>
-                </tbody>
-            </table>
+            <label for="frm_info_deck_name">Deck name:</label>
+            <input type="text" name="info_deck_name" id="frm_info_deck_name" value="">
+
+            <label for="frm_info_player_name">Player name:</label>
+            <input type="text" name="info_player_name" id="frm_info_player_name" value="">
+
+            <label for="frm_info_event_name">Event name:
+                <input type="text" name="info_event_name" id="frm_info_event_name" value=""></label>
+            <label for="frm_info_player_role">Role:</label>
+            <select name="info_player_role" id="frm_info_player_role" size="1" class="form_select">
+                <option value="" selected="selected"></option>
+                <option value="Winner">Winner</option>
+                <option value="Finalist">Finalist</option>
+                <option value="Top 4">Top 4</option>
+                <option value="Top 8">Top 8</option>
+                <option value="Top 16">Top 16</option>
+            </select>
+            <label for="frm_info_note_redazione">Note redazione:
+                <input type="text" name="info_note_redazione" id="frm_info_note_redazione"
+                       size="30" value=""></label>
+
         </fieldset>
         <h2 class="form-signin-heading" style=text-align:center>Input deck:</h2>
         <button class="btn btn-lg btn-primary btn-block" type="submit">Format</button>
@@ -50,11 +42,11 @@
                       placeholder="1 teferi, hero of dominaria" required>{{ previous_user_input }}</textarea>
         </div>
     </form>
-    <td style="vertical-align: top; width: 32ex;">
-        <b>Parsed output:</b><br>
-        <div class="well">
-            {% autoescape false %} <!-- allow \n to be converted to <br>-->
-            {{ parsed_output }}
-            {% endautoescape %}
-        </div>
+    <b>Parsed output:</b><br>
+    <div class="well">
+        {% autoescape false %} <!-- allow \n to be converted to <br>-->
+        {{ parsed_output.replace("\n", "<br>") }}
+        {% endautoescape %}
+    </div>
+</div>
 {% endblock content %}
