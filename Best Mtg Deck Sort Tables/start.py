@@ -12,7 +12,12 @@ from bestdeck import price_collection, get_db, Deck, get_format
 from prices_eur import prices_eur
 from prices_usd import prices_usd
 
+
 BASIC_LANDS = {"island": 25, "mountain": 25, "swamp": 25, "plains": 25, "forest": 25}
+
+
+def clean_input(stringa: str) -> str:
+    return stringa.lower().replace("  ", " ").replace("\t", " ").replace("\r", "").replace("’", "'")
 
 
 def get_currency(wk_local_proxy) -> (str, dict):
@@ -30,31 +35,28 @@ def get_currency(wk_local_proxy) -> (str, dict):
     return currency_html, card_prices
 
 
-def str_to_collection(string: str, add_basics=True) -> dict:
+def parse_collection(string: str, add_basics=True) -> dict:
     """
     Get form with coll_dict.
     """
     collection = dict()  # dict with user input
-    comment = string.lower().replace("  ", " ").replace("\t", " ").splitlines()
-    for line in comment:  # comment is now a list, elems (lines) are strings
+    comment = clean_input(string).splitlines()
+    for original_line in comment:  # comment is now a list, elems (lines) are strings
+        line = original_line.strip()
         if len(line) > 2:  # ignore empty lines/wrong format
-            line = line.strip()  # remove white spaces at end and beginning
             try:
                 if line[0].isdigit():  # if format: 1 tarmogoyf
-                    line = line.split(" ", 1)  # creates 1 list per line with 2 elem: number and name
-                    # merges cards already in coll_dict
-                    collection[line[1]] = collection.get(line[1], 0) + int(line[0])
+                    copies, name = line.split(" ", 1)  # creates 1 list per line with 2 elem: number and name
                 elif line[0].isalpha():  # if format: tarmogoyf 1
-                    line = line.split(" ")  # creates 1 list per line with n elem: names and number
-                    name = " ".join(line[:-1])  # joins all elems in list excep number
-                    # merges cards already in coll_dict
-                    collection[name] = collection.get(name, 0) + int(line[-1])
+                    name, copies = line.rsplit(" ", 1)
+                else:
+                    continue
+                # merge cards already in coll_dict
+                collection[name] = collection.get(name, 0) + int(copies.replace("x", ""))
                 if add_basics is True:
                     collection.update(BASIC_LANDS)
-            except IndexError:  # tries to find error
-                raise IndexError(line[0])
-            except ValueError:
-                raise ValueError(line[0])
+            except (IndexError, ValueError):       # identify error
+                raise ValueError(f"This line is not in the right format:\n{original_line}")
     return collection
 
 
@@ -83,7 +85,7 @@ def show_single_format(format_name, currency="€"):
         with open("collections.json") as data:
             collections = json.load(data)
 
-    except:  # if collections.json is too big, create a new one
+    except:                                     # if collections.json is too big, create a new one
         empty_dict = {"a": 1}
         with open("collections.json", "w") as data:
             json.dump(empty_dict, data)
@@ -93,7 +95,7 @@ def show_single_format(format_name, currency="€"):
         # save collection
         try:
             # comment is name of inp box where user inserts collection
-            collection = str_to_collection(request.form["comment"])
+            collection = parse_collection(request.form["comment"])
             session["user_code"] = str(random.random())
             collections[session["user_code"]] = collection
             with open("collections.json", "w") as j:
@@ -187,9 +189,10 @@ def values():
 @app.route("/value_result", methods=["POST"])
 def evaluate():
     try:
-        collection = str_to_collection(request.form["comment"], add_basics=False)
+        collection = parse_collection(request.form["comment"], add_basics=False)
     except (IndexError, ValueError) as err:
-        mistake = str(err.args[0][0])  # err.args = (["aaa"])  err.args[0] = ["aaa"]
+        # mistake = str(err.args[0][0])  # err.args = (["aaa"])  err.args[0] = ["aaa"]
+        mistake = str(err).replace("\n", "<br>")
         return render_template("wrongformat.html", error=mistake)
     currency_html, prices = get_currency(request)
 
@@ -204,14 +207,14 @@ def page_decklist_formatter():
                                parsed_output="")
     from format_deck import deck_formatter
     formatted_deck = deck_formatter(
-        cards=request.form['comment'].lower().replace("  ", " ").replace("\t", " ").replace("\r", ""),
+        cards=clean_input(request.form["comment"]),
         deck_name=request.form['info_deck_name'],
         player_name=request.form['info_player_name'],
         event_name=request.form['info_event_name'],
         role=request.form["info_player_role"],
         note=request.form['info_note_redazione'])
     return render_template("decklist_formatter.html",
-                           previous_user_info=request.form['comment'],
+                           previous_user_input=request.form["comment"],
                            parsed_output=formatted_deck)
 
 
