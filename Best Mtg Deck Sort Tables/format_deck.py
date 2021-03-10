@@ -37,7 +37,7 @@ def count_cards_list(cards_list: list) -> tuple:
             num_copies, card = card.split(" ", 1)
             num_copies = int(num_copies.replace("x", ""))
             count += num_copies
-            card = card.replace("x ", "")
+            card = card.replace("x ", "").split(" (")[0]
             cleaned_cards_str += f"{num_copies} {card.title()}\n"
         except ValueError:
             pass
@@ -58,11 +58,11 @@ def split_cards_by_type(cards_lines: str) -> str:
     card_types = dict()
     for line in cards_lines.splitlines():
         line = line.strip()
-        if len(line) > 3:
+        if len(line) > 2:
             try:
                 num_copies, card = line.split(" ", 1)
                 num_copies = int(num_copies.replace("x", ""))
-                card = card.replace("x ", "")
+                card = card.replace("x ", "").split(" (")[0]
                 card_type = get_type(card)
                 if card_type in card_types:
                     card_types[card_type][0] += num_copies
@@ -100,18 +100,20 @@ def split_cards_by_type(cards_lines: str) -> str:
 def deck_formatter(cards: str, deck_name: str, player_name: str,
                    event_name: str, role: str, note: str):
     if "sideboard\n" in cards:
-        splitted_cards = cards.split("sideboard\n")
+        splitted_cards = cards.split("sideboard")
     else:
-        splitted_cards = cards.split("side\n")
+        splitted_cards = cards.split("side")
 
     main_cards = splitted_cards[0]
     sideboard_cards = splitted_cards[1] if len(splitted_cards) > 1 else ""
     if sideboard_cards == "":
         sideboard_recap = ""
         int_count_sb = 0
+        cleaned_sideboard = ""
     else:
         int_count_sb, cleaned_sideboard = count_cards_list(sideboard_cards.splitlines())
         sideboard_recap = f"Sideboard: {int_count_sb}"
+
     base_html = f"""[table][tr][td3][b]{deck_name}[/b] by {player_name}
 {role}[/td3][/tr]
 [tr][td][mazzo]
