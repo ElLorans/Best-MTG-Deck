@@ -7,11 +7,11 @@
             <th>Value you own: {{ deck.value_you_own }} %</th>
         </tr>
         {% if currency != "mtga" %}
-        <tr>
-            <th>Tot Price ({{ currency |safe }})</th>
-            <th>Your Price ({{ currency |safe }})</th>
-            <th>Copies you need</th>
-        </tr>
+            <tr>
+                <th>Tot Price ({{ currency |safe }})</th>
+                <th>Your Price ({{ currency |safe }})</th>
+                <th>Copies you need</th>
+            </tr>
         {% endif %}
         <tr>
             <td>{{ deck.price }}</td>
@@ -36,7 +36,8 @@
         {% for card in deck.list %}
             <tr>
                 <td>
-                    <a class="simple" href="https://deckbox.org/mtg/ {{ card.name }} "> {{ card.name }} </a>
+                    <a class="simple" target="_blank" rel="noopener noreferrer"
+                       href="https://deckbox.org/mtg/ {{ card.name }} "> {{ card.name }} </a>
                 </td>
                 <td>
                     {{ card.copies_owned }} / {{ card.copies_total }}
@@ -133,18 +134,21 @@
                 Deck
                 <br>
                 {% for card in deck.list[1:] %}
-                    {{ card.copies_total }} {{ card.name }}
+                    {{ card.copies_total }} <a class="simple" target="_blank" rel="noopener noreferrer"
+                       href="https://deckbox.org/mtg/ {{ card.name }} "> {{ card.name }} </a>
                     <br>
                 {% endfor %}
             {% else %}
                 {% for card in deck.list %}
-                    {{ card.copies_total }} {{ card.name }}
+                    {{ card.copies_total }} <a class="simple" target="_blank" rel="noopener noreferrer"
+                       href="https://deckbox.org/mtg/ {{ card.name }} "> {{ card.name }} </a>
                     <br>
                 {% endfor %}
             {% endif %}
             <br>
             {% for card in deck.list_side %}
-                {{ card.copies_total }} {{ card.name }} {{ card.arena }}
+                {{ card.copies_total }} <a class="simple" target="_blank" rel="noopener noreferrer"
+                       href="https://deckbox.org/mtg/ {{ card.name }} "> {{ card.name }} </a> {{ card.arena }}
                 <br>
             {% endfor %}
 
@@ -155,7 +159,7 @@
             <p>
                 Building {{ deck.name }} should cost you about {{ deck.your_price }} {{ currency |safe }}
                 (Prices are calculated as
-                {%  if currency == "€" %}
+                {% if currency == "€" %}
                     mkm price trend
                 {% elif currency == "$" %}
                     tcg market price
@@ -164,21 +168,23 @@
             </p>
 
             <p>
-                {% for card in deck.list %}
-                    {% if card.copies_missing != 0 %}
-                        {{ card.copies_missing }} {{ card.name }}
-                        <br>
-                    {% endif %}
+            {% for card in deck.list %}
+                {% if card.copies_missing != 0 %}
+                    {{ card.copies_missing }} <a class="simple" target="_blank" rel="noopener noreferrer"
+                       href="https://deckbox.org/mtg/ {{ card.name }} "> {{ card.name }} </a>
+                    <br>
+                {% endif %}
 
-                {% endfor %}
-                <br>
-                {% for card in deck.list_side %}
-                    {% if card.copies_missing != 0 %}
-                        {{ card.copies_missing }} {{ card.name }}
-                        <br>
-                    {% endif %}
-                {% endfor %}
-            {% endif %}
+            {% endfor %}
+            <br>
+            {% for card in deck.list_side %}
+                {% if card.copies_missing != 0 %}
+                    {{ card.copies_missing }} <a class="simple" target="_blank" rel="noopener noreferrer"
+                       href="https://deckbox.org/mtg/ {{ card.name }} "> {{ card.name }} </a>
+                    <br>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
         </p>
     </div>
 {% endblock content %}
