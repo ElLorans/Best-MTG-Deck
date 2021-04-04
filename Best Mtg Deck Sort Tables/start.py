@@ -8,21 +8,15 @@ import sys
 
 from flask import Flask, render_template, request, send_file, session
 
-from bestdeck import price_collection, get_db, Deck, get_format
+from bestdeck import Deck, get_db, get_format, price_collection
+from mtg_parser import BASIC_LANDS, clean_input, parse_collection
 from prices_eur import prices_eur
 from prices_usd import prices_usd
 
 
-BASIC_LANDS = {"island": 25, "mountain": 25, "swamp": 25, "plains": 25, "forest": 25}
-
-
-def clean_input(stringa: str) -> str:
-    return stringa.lower().replace("  ", " ").replace("\t", " ").replace("\r", "").replace("’", "'")
-
-
 def get_currency(wk_local_proxy) -> (str, dict):
     """
-    Get tuple of str for html page and dict of prices.
+    Get tuple of str for html page ($ or €) and dict of prices.
     :param wk_local_proxy: class 'werkzeug.local.LocalProxy'
     :return: tuple (str, dict)
     """
@@ -33,31 +27,6 @@ def get_currency(wk_local_proxy) -> (str, dict):
         currency_html = "&#36;"  # $ sign for html
         card_prices = prices_usd
     return currency_html, card_prices
-
-
-def parse_collection(string: str, add_basics=True) -> dict:
-    """
-    Get form with coll_dict.
-    """
-    collection = dict()  # dict with user input
-    comment = clean_input(string).splitlines()
-    for original_line in comment:  # comment is now a list, elems (lines) are strings
-        line = original_line.strip()
-        if len(line) > 2:  # ignore empty lines/wrong format
-            try:
-                if line[0].isdigit():  # if format: 1 tarmogoyf
-                    copies, name = line.split(" ", 1)  # creates 1 list per line with 2 elem: number and name
-                elif line[0].isalpha():  # if format: tarmogoyf 1
-                    name, copies = line.rsplit(" ", 1)
-                else:
-                    continue
-                # merge cards already in coll_dict
-                collection[name] = collection.get(name, 0) + int(copies.replace("x", ""))
-                if add_basics is True:
-                    collection.update(BASIC_LANDS)
-            except (IndexError, ValueError):       # identify error
-                raise ValueError(f"This line is not in the right format:\n{original_line}")
-    return collection
 
 
 app = Flask(__name__)  # initialize website
@@ -85,16 +54,15 @@ def show_single_format(format_name, currency="€"):
         with open("collections.json") as data:
             collections = json.load(data)
 
-    except:                                     # if collections.json is too big, create a new one
-        empty_dict = {"a": 1}
+    except Exception:  # if collections.json is too big, create a new one
         with open("collections.json", "w") as data:
-            json.dump(empty_dict, data)
+            json.dump({"a": 1}, data)
         collections = dict()
 
     if request.method == "POST":
         # save collection
         try:
-            # comment is name of inp box where user inserts collection
+            # comment is name of input box where user inserts collection
             collection = parse_collection(request.form["comment"])
             session["user_code"] = str(random.random())
             collections[session["user_code"]] = collection
@@ -116,10 +84,13 @@ def show_single_format(format_name, currency="€"):
         else:
             collection = BASIC_LANDS
 
-    if currency == "€":
-        card_prices = prices_eur
-    elif currency == "$":
-        card_prices = prices_usd
+    if currency == "€" or currency == "$":
+        card_prices = {"€": prices_eur, "$": prices_usd}[currency]
+        return render_template("format.html",
+                               format_name=format_name,
+                               formato=get_db(collection, get_format(format_name), card_prices),
+                               currency=currency,
+                               prices=card_prices)
     elif currency == "mtga":
         return render_template("mtga_formats.html",
                                format_name=format_name,
@@ -128,12 +99,6 @@ def show_single_format(format_name, currency="€"):
                                prices=prices_eur)
     else:
         return render_template("wrongformat.html", error="The url you inserted")
-
-    return render_template("format.html",
-                           format_name=format_name,
-                           formato=get_db(collection, get_format(format_name), card_prices),
-                           currency=currency,
-                           prices=card_prices)
 
 
 @app.route("/calc/<format_name>/<deck_name>/<currency>", strict_slashes=False, methods=["GET"])
@@ -206,7 +171,7 @@ def page_decklist_formatter():
                                previous_user_info="",
                                parsed_output="")
     from format_deck import deck_formatter
-    formatted_deck = deck_formatter(
+    bbcode_deck, html_deck = deck_formatter(
         cards=clean_input(request.form["comment"]),
         deck_name=request.form['info_deck_name'],
         player_name=request.form['info_player_name'],
@@ -215,7 +180,8 @@ def page_decklist_formatter():
         note=request.form['info_note_redazione'])
     return render_template("decklist_formatter.html",
                            previous_user_input=request.form["comment"],
-                           parsed_output=formatted_deck)
+                           parsed_output=bbcode_deck,
+                           test=html_deck)
 
 
 @app.route("/download1.2")
