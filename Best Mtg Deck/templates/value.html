@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+{% block content %}
+
+    <p></p>
+    <div class="container">
+        <form class="form-signin" method="post" action="/value_result">
+            <h2 class="form-signin-heading" style=text-align:center>Price Cards</h2>
+            <button class="btn btn-lg btn-primary btn-block" type="submit">Submit</button>
+            <p></p>
+            <div class="form-group">
+                <label for="comment" class="sr-only">Insert Collection:</label>
+                <textarea class="form-control" name="comment" rows="10" id="comment"
+                          placeholder="1 teferi, hero of dominaria" required></textarea>
+            </div>
+
+            <label>
+                <input type="checkbox" name="dollars" value="dollar">
+            </label> Prices in USD
+
+        </form>
+
+    </div>
+
+
+{% endblock content %}

@@ -1,0 +1,63 @@
+{% extends "layout.html" %}
+{% block content %}
+
+    <a href='/Standard/{{ currency |safe }} ' > Standard </a>
+    |
+     <a href='/Historic/{{ currency |safe }} ' > Historic </a>
+    |
+     <a href='/Brawl/{{ currency |safe }} ' > Brawl </a>
+    |
+     <a href='/Historic Brawl/{{ currency |safe }} ' > Historic Brawl </a>
+    |
+     <a href='/Commander 1v1/{{ currency |safe }} ' > Commander 1v1 </a>
+    |
+     <a href='/Commander/{{ currency |safe }} ' > Commander </a>
+    |
+     <a href='/Pioneer/{{ currency |safe }} ' > Pioneer </a>
+    |
+    <a href='/Modern/{{ currency |safe }} ' > Modern </a>
+    |
+     <a href='/Legacy/{{ currency |safe }} ' > Legacy </a>
+    |
+     <a href='/Legacy Budget To/{{ currency |safe }} ' > Legacy Budget To Tier </a>
+    |
+     <a href='/Vintage/{{ currency |safe }} ' > Vintage </a>
+    |
+     <a href='/Pauper/{{ currency |safe }} ' > Pauper </a>
+    |
+     <a href='/Cube/{{ currency |safe }} ' > Cube </a>
+
+    <br>
+    <br>
+
+    <table id="customers">
+        <tr>
+            <th>{{ format_name }} Tiers by % Price you already have</th>
+        </tr>
+    </table>
+
+    <table id="customers" class="sortable">
+        <tr>
+            <th>Deck:</th>
+            <th>Value you own %</th>
+            <th>Tot price ({{ currency |safe }})</th>
+            <th>Your Price ({{ currency |safe }})</th>
+            <th>Cards you need</th>
+            <th>Tot Cards</th>
+        </tr>
+        {% for deck in formato %}
+            <tr>
+                <td><a href='/calc/{{ format_name }}/{{ deck.name }}/{{ currency |safe }}'> {{ deck.name }} </a></td>
+                <td> {{ deck.value }} </td>
+                <td> {{ deck.tot_price }} </td>
+                <td> {{ deck.your_price }} </td>
+                <td> {{ deck.cards_needed }} </td>
+                <td>{{ deck.cards_total }} </td>
+            </tr>
+        {% endfor %}
+    </table>
+
+    <br>
+    <br>
+
+{% endblock content %}
