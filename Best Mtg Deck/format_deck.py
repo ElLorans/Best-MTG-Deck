@@ -1,5 +1,25 @@
+from typing import List
+
 from card_types import cards_to_types
 from mtg_parser import line_to_tuple
+
+
+def is_mtg_type(stringa: str) -> bool:
+    """
+    Return True if stringa is a mtg type, False otherwise.
+    """
+    types = ("lands", "creatures", "instants", "other", "sideboard")
+    for t in types:
+        if t in stringa:
+            return True
+    return False
+
+
+def remove_mtg_types(lista: List[str]) -> list:
+    """
+    Remove card types from list.
+    """
+    return [line for line in lista if not is_mtg_type(line)]
 
 
 def get_type(card: str) -> str:
@@ -66,7 +86,7 @@ def count_cards_list(cards_list: list, parse_str=True) -> tuple:
     return count, None
 
 
-def split_cards_by_type(cards_lines: str) -> str:
+def split_cards_by_type(cards_lines: list) -> str:
     """
     From str of {number} {card}\n , get str of cards separated by type name and bbcode.
     :param cards_lines: str (e.g.: 1 tarmogoyf\n4 Wooded Foothills)
@@ -78,7 +98,7 @@ def split_cards_by_type(cards_lines: str) -> str:
     # Dict[Str, List[int, List[str]]
     # {"type": [num_cards, [line1, line2, ...]], ...}
     card_types = dict()
-    for line in cards_lines.splitlines():
+    for line in cards_lines:
         line = line.strip()
         if len(line) > 2:
             try:
@@ -104,7 +124,7 @@ def split_cards_by_type(cards_lines: str) -> str:
     # sort card_types
     ordered_types = ("Creatures", "Sorceries", "Instants", "Enchantments", "Planeswalker", "Artifacts",
                      "Others", "Lands")
-    ordered_card_types = {c_type: card_types[c_type] for c_type in ordered_types if c_type in card_types}
+    ordered_card_types = {mtg_type: card_types[mtg_type] for mtg_type in ordered_types if mtg_type in card_types}
     # get weird remaining types
     ordered_card_types.update(card_types)
 
@@ -125,15 +145,15 @@ def deck_formatter(cards: str, deck_name: str, player_name: str,
     else:
         splitted_cards = cards.split("side", 1)
 
-    main_cards = splitted_cards[0]
-    sideboard_cards = splitted_cards[1] if len(splitted_cards) > 1 else ""
-    if sideboard_cards == "":
-        sideboard_recap = ""
+    main_cards = remove_mtg_types(splitted_cards[0].splitlines())
+    if len(splitted_cards) > 1:
+        sideboard_cards = remove_mtg_types(splitted_cards[1].splitlines())
+        int_count_sb, cleaned_sideboard = count_cards_list(sideboard_cards)
+        sideboard_recap = f"Sideboard: {int_count_sb}"
+    else:
         int_count_sb = 0
         cleaned_sideboard = ""
-    else:
-        int_count_sb, cleaned_sideboard = count_cards_list(sideboard_cards.splitlines())
-        sideboard_recap = f"Sideboard: {int_count_sb}"
+        sideboard_recap = ""
 
     cards_splitted_by_type = split_cards_by_type(main_cards)
     bbcode_deck = f"""[table][tr][td3][b]{deck_name}[/b] by {player_name}
@@ -149,7 +169,7 @@ Sideboard ({int_count_sb}):
 [tr][td2][i]ndr.[/i]
 {'-' if note == "" else note}[/td2]
 [td]Details
-Main Deck: {count_cards_list(main_cards.splitlines())[0]}
+Main Deck: {count_cards_list(main_cards)[0]}
 {sideboard_recap}
 [/td][/tr][/table]
 """
@@ -157,7 +177,8 @@ Main Deck: {count_cards_list(main_cards.splitlines())[0]}
     html_deck = f"""<table class="deck" style="width: 70%;  background-color: #ecf3f7;" cellspacing="7">
         <tbody>
         <tr>
-            <td colspan="3" style="background-color: #e1e9e9;" align="center"><span style="font-weight: bold">{deck_name}</span> 
+            <td colspan="3" style="background-color: #e1e9e9;" align="center"><span style="font-weight: 
+            bold">{deck_name}</span> 
                 by {player_name}
             </td>
         </tr>
@@ -167,8 +188,8 @@ Main Deck: {count_cards_list(main_cards.splitlines())[0]}
     bbcode_to_html = "</td><td valign='top' align='left'>"
     for index, line in enumerate(cards_splitted_by_type.replace("[/mazzo][/td][td][mazzo]",
                                                                 bbcode_to_html).splitlines()):
-        if line[-2:] == "):":   # if new line is a card type (e.g.: "Creatures (19):"
-            if index != 0:      # if it is not the first one, close div tag BEFORE new line
+        if line[-2:] == "):":  # if new line is a card type (e.g.: "Creatures (19):"
+            if index != 0:  # if it is not the first one, close div tag BEFORE new line
                 html_deck += "</div>"
             html_deck += f"<div><b>{line}</b><br>"
         elif len(line) < 2:
@@ -192,7 +213,7 @@ Main Deck: {count_cards_list(main_cards.splitlines())[0]}
             <td colspan="2" style="background-color: #e1e9e9;" align="center"><span
                     style="font-style: italic">ndr.</span><br>-
             </td>
-            <td valign="top">Details<br>Main Deck: {count_cards_list(main_cards.splitlines())[0]}<br>
+            <td valign="top">Details<br>Main Deck: {count_cards_list(main_cards)[0]}<br>
             {sideboard_recap}</td>
         </tr>
         </tbody>
@@ -226,4 +247,4 @@ if __name__ == "__main__":
 4 ponderare
 4 oust
 4 lava axe
-4 finale of promise""")
+4 finale of promise""".splitlines())
