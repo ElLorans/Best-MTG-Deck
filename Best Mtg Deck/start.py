@@ -174,14 +174,16 @@ def page_decklist_formatter():
     bbcode_deck, html_deck = deck_formatter(
         cards=clean_input(request.form["comment"]),
         deck_name=request.form['info_deck_name'],
-        player_name=request.form['info_player_name'],
+        player_name=request.form['player_name'],
         event_name=request.form['info_event_name'],
         role=request.form["info_player_role"],
         note=request.form['info_note_redazione'])
     return render_template("decklist_formatter.html",
                            previous_user_input=request.form["comment"],
                            parsed_output=bbcode_deck,
-                           test=html_deck)
+                           test=html_deck,
+                           player_name=request.form['player_name'],
+                           event_name=request.form['info_event_name'])
 
 
 @app.route("/download1.2")
