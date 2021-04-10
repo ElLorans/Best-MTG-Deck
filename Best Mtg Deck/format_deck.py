@@ -1,5 +1,3 @@
-from typing import List
-
 from card_types import cards_to_types
 from mtg_parser import line_to_tuple
 
@@ -8,14 +6,14 @@ def is_mtg_type(stringa: str) -> bool:
     """
     Return True if stringa is a mtg type, False otherwise.
     """
-    types = ("lands", "creatures", "instants", "other", "sideboard")
+    types = ("lands", "creatures", "instants", "artifacts", "enchantments", "other", "sideboard")
     for t in types:
         if t in stringa:
             return True
     return False
 
 
-def remove_mtg_types(lista: List[str]) -> list:
+def remove_mtg_types(lista: list) -> list:
     """
     Remove card types from list.
     """
