@@ -42,7 +42,7 @@
             {% for card in value.recognized %}
                 <tr>
                     <td>
-                        <a class="simple" href="https://deckbox.org/mtg/ {{ card.name }} "> {{ card.name.title() }} </a>
+                        <a class="simple" href="https://deckbox.org/mtg/ {{ card.name }} "> {{ card.name.title().replace("'S", "'s") }} </a>
                     </td>
                     <td>{{ card.copies }}</td>
                     <td>{{ card.price }}</td>
