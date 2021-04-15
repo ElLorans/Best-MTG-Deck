@@ -1,5 +1,6 @@
 from card_types import cards_to_types
 from mtg_parser import line_to_tuple
+import re
 
 
 def is_mtg_type(stringa: str) -> bool:
@@ -76,7 +77,7 @@ def count_cards_list(cards_list: list, parse_str=True) -> tuple:
                 card, num_copies = line_to_tuple(line)
                 count += num_copies
                 if parse_str:
-                    cleaned_cards_str += f"{num_copies} {card.title()}\n"
+                    cleaned_cards_str += f"{num_copies} {titlecase(card)}\n"
         except ValueError:
             pass
     if parse_str:
@@ -104,9 +105,11 @@ def split_cards_by_type(cards_lines: list) -> str:
                 card_type = get_type(card)
                 if card_type in card_types:
                     card_types[card_type][0] += num_copies
-                    card_types[card_type][1].append(f"{num_copies} {card.title()}")
+                    card_types[card_type][1].append(f"{num_copies}
+                                                    {titlecase(card)}")
                 else:
-                    card_types[card_type] = [num_copies, [f"{num_copies} {card.title()}"]]
+                    card_types[card_type] = [num_copies, [f"{num_copies}
+                                                          {titlecase(card)}"]]
             except (IndexError, ValueError):
                 continue
 
@@ -219,6 +222,12 @@ Main Deck: {count_cards_list(main_cards)[0]}
 """
 
     return bbcode_deck, html_deck
+
+
+def titlecase(s):
+    return re.sub(r"[A-Za-z]+('[A-Za-z]+)?",
+                  lambda mo: mo.group(0).capitalize(),
+                  s)
 
 
 if __name__ == "__main__":
