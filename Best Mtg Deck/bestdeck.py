@@ -92,10 +92,7 @@ class Deck:
 
             # double cards are often not included in decklist or in prices_eur.
             # Solve by calling card_prices of only first part e.g.: "status // statue" becomes "status"
-            try:
-                card_price = self.card_prices[card_lower]
-            except KeyError:
-                card_price = self.card_prices[card_lower.split(" // ")[0]]
+            card_price = self.card_prices.get(card_lower, card_lower.split(" // ")[0])
 
             self.price += self.total[card] * card_price
 
