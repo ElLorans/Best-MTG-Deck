@@ -9,8 +9,7 @@ def is_mtg_type(stringa: str) -> bool:
     Return True if stringa is a mtg type, False otherwise.
     """
     types = frozenset(("lands", "creatures", "instants", "artifacts", "enchantments", "other", "sideboard"))
-    substrings = frozenset(stringa.split(" "))
-    if len(substrings & types) > 0:
+    if stringa.split(" ", 1)[1] in types:
         return True
     return False
 
