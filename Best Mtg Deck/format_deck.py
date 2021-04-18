@@ -1,4 +1,5 @@
 import re
+
 from card_types import cards_to_types
 from mtg_parser import line_to_tuple
 
