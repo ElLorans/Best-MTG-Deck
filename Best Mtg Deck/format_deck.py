@@ -7,10 +7,10 @@ def is_mtg_type(stringa: str) -> bool:
     """
     Return True if stringa is a mtg type, False otherwise.
     """
-    types = ("lands", "creatures", "instants", "artifacts", "enchantments", "other", "sideboard")
-    for t in types:
-        if t in stringa:
-            return True
+    types = frozenset(("lands", "creatures", "instants", "artifacts", "enchantments", "other", "sideboard"))
+    substrings = frozenset(stringa.split(" "))
+    if len(substrings & types) > 0:
+        return True
     return False
 
 
@@ -105,11 +105,9 @@ def split_cards_by_type(cards_lines: list) -> str:
                 card_type = get_type(card)
                 if card_type in card_types:
                     card_types[card_type][0] += num_copies
-                    card_types[card_type][1].append(f"{num_copies}
-                                                    {titlecase(card)}")
+                    card_types[card_type][1].append(f"{num_copies} {titlecase(card)}")
                 else:
-                    card_types[card_type] = [num_copies, [f"{num_copies}
-                                                          {titlecase(card)}"]]
+                    card_types[card_type] = [num_copies, [f"{num_copies} {titlecase(card)}"]]
             except (IndexError, ValueError):
                 continue
 
