@@ -6,11 +6,15 @@ from mtg_parser import line_to_tuple
 
 def is_mtg_type(stringa: str) -> bool:
     """
-    Return True if stringa is a mtg type, False otherwise.
+    Return True if stringa (int str) is a mtg type, False otherwise.
+    :param stringa: f"{integer} {stringa}"
     """
     types = frozenset(("lands", "creatures", "instants", "artifacts", "enchantments", "other", "sideboard"))
-    if stringa.split(" ", 1)[1] in types:
-        return True
+    try:
+        if stringa.split(" ", 1)[1] in types:
+            return True
+    except IndexError:    # e.g.: Sideboard
+        return False
     return False
 
 
