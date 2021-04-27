@@ -1,0 +1,76 @@
+{% extends "layout.html" %}
+{% block content %}
+    <script>
+        function copyBBDeck() {
+            var copyText = document.getElementById("bbcode_deck");
+            copyText.select();
+            copyText.setSelectionRange(0, 99999)
+            document.execCommand("copy");
+            alert("Copied!");
+        }
+    </script>
+
+    <div class="well">
+        <p><b>Warning:</b> Deck formatter is still an experimental feature. Want to signal any bugs or request new
+            features? Send an email to bestdeckforyou@gmail.com or raise an issue on
+            <a href="https://github.com/ElLorans/Best-MTG-Deck">https://github.com/ElLorans/Best-MTG-Deck</a>
+        </p>
+    </div>
+
+    <div class="container">
+        <form class="form-signin" method="post" action="/decklist_formatter">
+            <fieldset>
+                <legend>Additional information</legend>
+
+                <label for="frm_info_deck_name">Deck name: </label>
+                <input type="text" name="info_deck_name" id="frm_info_deck_name" value="">
+                <br>
+
+                <label for="frm_info_player_name">Player name:</label>
+                <input type="text" name="player_name" id="frm_info_player_name" value={{ player_name }}>
+                <br>
+
+                <label for="frm_info_event_name">Event name:</label>
+                <input type="text" name="info_event_name" id="frm_info_event_name" value={{ event_name }}>
+                <br>
+
+                <label for="frm_info_player_role">Role:</label>
+                <select name="info_player_role" id="frm_info_player_role" size="1" class="form_select">
+                    <option value="" selected="selected"></option>
+                    <option value="Winner">Winner</option>
+                    <option value="Finalist">Finalist</option>
+                    <option value="Top 4">Top 4</option>
+                    <option value="Top 8">Top 8</option>
+                    <option value="Top 16">Top 16</option>
+                </select>
+                <label for="frm_info_note_redazione">Note redazione:
+                    <input type="text" name="info_note_redazione" id="frm_info_note_redazione"
+                           size="30" value=""></label>
+
+            </fieldset>
+            <h2 class="form-signin-heading" style=text-align:center>Input deck:</h2>
+            <button class="btn btn-lg btn-primary btn-block" type="submit">Format</button>
+            <p></p>
+            <div class="form-group">
+                <label for="comment" class="sr-only">Insert Collection:</label>
+                <textarea class="form-control" name="comment" rows="10" id="comment"
+                          placeholder="1 teferi, hero of dominaria" required>{{ previous_user_input }}</textarea>
+            </div>
+            <a href="/decklist_formatter">Clear form</a>
+        </form>
+
+        <div style=text-align:center>
+            <p>
+                <b>Parsed output:</b>
+                <button onclick="copyBBDeck()">Copy text</button>
+            </p>
+            <textarea id="bbcode_deck" cols="45" rows="10">
+        {{ parsed_output }}
+    </textarea>
+
+            <br>
+            <br>
+            {{ test | safe }}
+        </div>
+    </div>
+{% endblock content %}
