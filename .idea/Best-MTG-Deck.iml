@@ -8,12 +8,13 @@
   <component name="PyDocumentationSettings">
     <option name="format" value="PLAIN" />
     <option name="myDocStringFormat" value="Plain" />
+    <option name="renderExternalDocumentation" value="true" />
   </component>
   <component name="TemplatesService">
     <option name="TEMPLATE_CONFIGURATION" value="Jinja2" />
     <option name="TEMPLATE_FOLDERS">
       <list>
-        <option value="$MODULE_DIR$/Best Mtg Deck/templates" />
+        <option value="$MODULE_DIR$/BestMtgDeck/templates" />
       </list>
     </option>
   </component>

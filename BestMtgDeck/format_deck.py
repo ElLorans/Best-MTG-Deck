@@ -1,16 +1,184 @@
-import re
-
 from card_types import cards_to_types
-from mtg_parser import line_to_tuple
+from mtg_parser import line_to_tuple, titlecase
+from translations import translations
+
+
+def analyse_cards_and_mistakes(lista: list) -> list:
+    """
+    Return list of tuples (line, bool) for each line in lista. Bool is True if line is correct, False otherwise.
+    :param lista: list[str]
+    :return: List[tuple[str, bool]]
+    """
+    result = list()
+    for original_line in lista:
+        line = original_line.strip()
+        if len(line) > 2:
+            try:
+                card, num_copies = line_to_tuple(line)
+                if card in cards_to_types:
+                    result.append(
+                        {"line": f"{num_copies} {card}", "is_correct": True, "card": card, "copies": num_copies}
+                    )
+                else:
+                    try:    # If I can translate, I suppose I have type
+                        card = translations[card]
+                        result.append(
+                            {"line": f"{num_copies} {card}", "is_correct": True, "card": card, "copies": num_copies}
+                        )
+                    except KeyError:
+                        result.append(
+                            {"line": f"{num_copies} {card}", "is_correct": False, "card": card, "copies": 0}
+                        )
+            except IndexError:
+                result.append({"line": line, "is_correct": False, "card": line, "copies": 0})
+        else:
+            result.append({"line": line, "is_correct": False, "card": line, "copies": 0})
+    return result
+
+
+def group_by_mtg_type(lista: list) -> dict:
+    """
+    Return dict with lists of 2 elems: # copies and lines.
+    :param lista: List[Dict[str, Any]]
+    :return: Dict[str, List[int, str]]
+    """
+    cards_by_types = dict()
+    sideboard = False
+    for dictionary in lista:
+        if dictionary["line"] == "sideboard":
+            sideboard = True
+            cards_by_types["Sideboard"] = [0, list()]
+        elif sideboard:
+            if dictionary["is_correct"]:
+                cards_by_types["Sideboard"][0] += dictionary["copies"]
+                cards_by_types["Sideboard"][1].append(dictionary["line"])
+        else:
+            if dictionary["is_correct"]:
+                card_type = get_type(dictionary["card"])
+                if card_type in cards_by_types:
+                    cards_by_types[card_type][0] += dictionary["copies"]
+                    cards_by_types[card_type][1].append(dictionary["line"])
+                else:
+                    cards_by_types[card_type] = [dictionary["copies"], [dictionary["line"]]]
+
+    for mtg_type, (total_copies, lines) in cards_by_types.items():
+        lines.sort(reverse=True)
+    return cards_by_types
+
+
+def dict_to_bbcode(card_types: dict, deck_name: str, player_name: str,
+                   event_name: str, role: str, note: str) -> tuple:
+
+    # when reach half of types
+    half_index = int(-(-len(card_types.items()) // 2))
+
+    # sort card_types
+    ordered_types = ("Creatures", "Sorceries", "Instants", "Enchantments",
+                     "Planeswalker", "Artifacts", "Others", "Lands")
+    ordered_card_types = {mtg_type: card_types[mtg_type] for mtg_type in ordered_types if mtg_type in card_types}
+    # get weird remaining types
+    ordered_card_types.update(card_types)
+    try:
+        ordered_card_types["Sideboard"] = card_types["Sideboard"]
+        sideboard_recap = f"Sideboard ({ordered_card_types['Sideboard'][0]}):"
+        sideboard_lines = '\n'.join(ordered_card_types["Sideboard"][1])
+    except KeyError:
+        sideboard_recap = f"Sideboard (0):"
+        sideboard_lines = ""
+
+    bbcode_deck = f"""[table][tr][td3][b]{deck_name}[/b] by {player_name} {role}[/td3][/tr]
+[tr][td][deck]"""
+    tot_main = 0
+    for index, (mtg_type, (num_copies, lines)) in enumerate(ordered_card_types.items()):
+        if index > 0:
+            bbcode_deck += "\n\n"
+        if index == half_index:  # change column only at half of types
+            bbcode_deck += "[/deck][/td][td][deck]\n"
+        bbcode_deck += f"{mtg_type} ({num_copies}):\n"
+        bbcode_deck += '\n'.join(lines)
+        tot_main += num_copies
+
+    bbcode_deck += f"""
+[/deck][/td]
+[td][deck]
+{sideboard_recap}
+{sideboard_lines}
+[/deck][/td][/tr]
+{"" if event_name == "" else f"[tr][td3]{event_name}[/td3][/tr]"}
+[tr][td2][i]ndr.[/i]
+{'-' if note == "" else note}[/td2]
+[td]Details
+Main Deck: {tot_main}
+{sideboard_recap}
+[/td][/tr][/table]
+"""
+    html_deck = f"""<table class="deck" style="width: 70%;  background-color: #ecf3f7;" cellspacing="7">
+            <tbody>
+            <tr>
+                <td colspan="3" style="background-color: #e1e9e9;" align="center"><span style="font-weight: 
+                bold">{deck_name}</span> 
+                    by {player_name}
+                </td>
+            </tr>
+            <tr>
+                <td valign="top" align="left">
+                """
+
+    bbcode_to_html = "</td><td valign='top' align='left'>"
+    for index, line in enumerate(bbcode_deck.replace("[/deck][/td][td][deck]",
+                                                                bbcode_to_html).replace("[tr][td][deck]", "").splitlines()):
+        if line[-2:] == "):":  # if new line is a card type (e.g.: "Creatures (19):"
+            if index != 0:  # if it is not the first one, close div tag BEFORE new line
+                html_deck += "</div>"
+            html_deck += f"<div><b>{line}</b><br>"
+        elif len(line) < 2:
+            continue
+        elif line == bbcode_to_html:
+            html_deck += line
+        else:
+            try:
+                card, copies = line_to_tuple(line)
+                html_deck += f"{copies} <a class='simple' target='_blank' rel='noopener noreferrer' " \
+                             f"href='https://deckbox.org/mtg/{card}'>{card}</a><br> "
+            except ValueError:
+                pass
+
+    html_deck += f"<td valign='top' align='left'><b>{sideboard_recap}</b><br>"
+    try:
+        for dictionary in ordered_card_types["Sideboard"]:
+            card, copies = line_to_tuple(dictionary["line"])
+            html_deck += f"{copies} <a class='simple' target='_blank' rel='noopener noreferrer' " \
+                         f"href='https://deckbox.org/mtg/{card}'>{card}</a><br> "
+    except KeyError:
+        pass
+    html_deck += f"""
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" style="background-color: #e1e9e9;" align="center"><span
+                        style="font-style: italic">ndr.</span><br>-
+                </td>
+                <td valign="top">Details<br>Main Deck: {tot_main}<br>
+                {sideboard_recap}</td>
+            </tr>
+            </tbody>
+        </table>
+    """
+
+    return bbcode_deck, html_deck
 
 
 def is_mtg_type(stringa: str) -> bool:
     """
-    Return True if stringa is a mtg type, False otherwise.
+    Return True if stringa (int str) is a mtg type, False otherwise.
+    :param stringa: f"{integer} {stringa}"
     """
     types = frozenset(("lands", "creatures", "instants", "artifacts", "enchantments", "other", "sideboard"))
-    if stringa.split(" ", 1)[1] in types:
-        return True
+    try:
+        if stringa.split(" ", 1)[1] in types:
+            return True
+    except IndexError:    # e.g.: Sideboard
+        return False
     return False
 
 
@@ -222,12 +390,6 @@ Main Deck: {count_cards_list(main_cards)[0]}
     return bbcode_deck, html_deck
 
 
-def titlecase(s):
-    return re.sub(r"[A-Za-z]+('[A-Za-z]+)?",
-                  lambda mo: mo.group(0).capitalize(),
-                  s)
-
-
 if __name__ == "__main__":
     a = deck_formatter("1 tarmogoyf\n1liliana del velo\n1 thoughtseize\n1x ponder\nside\1xponder",
                        "",
@@ -253,3 +415,4 @@ if __name__ == "__main__":
 4 oust
 4 lava axe
 4 finale of promise""".splitlines())
+    import pdb; pdb.set_trace()

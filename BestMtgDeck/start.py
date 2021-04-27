@@ -167,9 +167,7 @@ def evaluate():
 @app.route("/decklist_formatter", methods=["POST", "GET"])
 def page_decklist_formatter():
     if request.method == "GET":
-        return render_template("decklist_formatter.html",
-                               previous_user_info="",
-                               parsed_output="")
+        return render_template("decklist_formatter.html")
     from format_deck import deck_formatter
     bbcode_deck, html_deck = deck_formatter(
         cards=clean_input(request.form["comment"]),
@@ -195,6 +193,27 @@ def download_file():
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template("wrongformat.html", error="The requested URL was not found on the server and")
+
+
+@app.route("/test", methods=["GET", "POST"])
+def test():
+    # return render_template("test.html")
+    if request.method == "GET":
+        return render_template("test.html")
+    from format_deck import analyse_cards_and_mistakes, group_by_mtg_type, dict_to_bbcode
+    # return str(analyse_cards_and_mistakes(clean_input(request.form["comment"]).splitlines()))
+    cards_and_mistakes = analyse_cards_and_mistakes(clean_input(request.form["comment"]).splitlines())
+    bbcode, html = dict_to_bbcode(group_by_mtg_type(cards_and_mistakes), "", "", "", "", "")
+    return render_template("test.html",
+                           previous_user_input=request.form["comment"],
+                           parsed_output=cards_and_mistakes,
+                           player_name=request.form['player_name'],
+                           event_name=request.form['info_event_name'],
+                           #bbcode_deck=str(cards_and_mistakes)
+                           #bbcode_deck=group_by_mtg_type(cards_and_mistakes)
+                           bbcode_deck=bbcode,
+                           html_deck=html
+                            )
 
 
 if __name__ == "__main__":

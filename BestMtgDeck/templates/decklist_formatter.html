@@ -22,7 +22,6 @@
             <fieldset>
                 <legend>Additional information</legend>
 
-
                 <label for="frm_info_deck_name">Deck name: </label>
                 <input type="text" name="info_deck_name" id="frm_info_deck_name" value="">
                 <br>
@@ -60,11 +59,7 @@
             <a href="/decklist_formatter">Clear form</a>
         </form>
 
-
         <div style=text-align:center>
-            {#            <br>#}
-            {#            {{ parsed_output.replace("[", "<").replace("]", ">").replace("\n", "<br>") | safe }}#}
-            {#            <br>#}
             <p>
                 <b>Parsed output:</b>
                 <button onclick="copyBBDeck()">Copy text</button>
