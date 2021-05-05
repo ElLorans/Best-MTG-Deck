@@ -65,12 +65,22 @@ def group_by_mtg_type(lista: list) -> dict:
         lines.sort(reverse=True)
     return cards_by_types
 
+def split_bb(ordered_card_types: dict)->int:
+    structure=[[key,len(ordered_card_types[key])] for key in ordered_card_types.keys()]
+    i=len(structure)-1
+    nl1=sum([structure[j][1] for j in range(i)])
+    nl2=sum([structure[j][1] for j in range(i,len(structure))])
+    while (i>0 and nl1>nl2):
+        i=i-1
+        nl1=sum([structure[j][1] for j in range(i)])
+        nl2=sum([structure[j][1] for j in range(i,len(structure))])
+    return i
 
 def dict_to_bbcode(card_types: dict, deck_name: str, player_name: str,
                    event_name: str, role: str, note: str) -> tuple:
 
     # when reach half of types
-    half_index = int(-(-len(card_types.items()) // 2))
+    split_index=split_bb(ordered_card_types)
 
     # sort card_types
     ordered_types = ("Creatures", "Sorceries", "Instants", "Enchantments",
@@ -92,7 +102,7 @@ def dict_to_bbcode(card_types: dict, deck_name: str, player_name: str,
     for index, (mtg_type, (num_copies, lines)) in enumerate(ordered_card_types.items()):
         if index > 0:
             bbcode_deck += "\n\n"
-        if index == half_index:  # change column only at half of types
+        if index == split_index:  # change column only at half of types
             bbcode_deck += "[/deck][/td][td][deck]\n"
         bbcode_deck += f"{mtg_type} ({num_copies}):\n"
         bbcode_deck += '\n'.join(lines)
