@@ -67,14 +67,13 @@ def group_by_mtg_type(lista: list) -> dict:
 
 def split_bb(ordered_card_types: dict)->int:
     structure=[[key,len(ordered_card_types[key])] for key in ordered_card_types.keys()]
-    i=len(structure)-1
-    nl1=sum([structure[j][1] for j in range(i)])
-    nl2=sum([structure[j][1] for j in range(i,len(structure))])
-    while (i>0 and nl1>nl2):
-        i=i-1
+    gap=[]
+    for i in range(1,len(structure)):
         nl1=sum([structure[j][1] for j in range(i)])
         nl2=sum([structure[j][1] for j in range(i,len(structure))])
-    return i
+        gap.append(abs(nl1-nl2))
+    return gap.index(max(gap))+1
+
 
 def dict_to_bbcode(card_types: dict, deck_name: str, player_name: str,
                    event_name: str, role: str, note: str) -> tuple:
