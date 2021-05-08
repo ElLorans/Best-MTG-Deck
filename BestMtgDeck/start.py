@@ -185,7 +185,7 @@ def page_decklist_formatter():
                            player_name=request.form['player_name'],
                            event_name=request.form['info_event_name'],
                            bbcode_deck=bbcode,
-                           html_deck=""
+                           html_deck=""  #html
                            )
 
 
