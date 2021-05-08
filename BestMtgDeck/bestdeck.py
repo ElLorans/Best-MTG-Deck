@@ -9,11 +9,10 @@ from database import Standard, Brawl, Historic, Pioneer, Modern, Legacy, LegacyB
     Legacy_Sideboards, LegacyBudgetToTier_Sideboards, Pauper_Sideboards, Vintage_Sideboards, Commander_1v1_Sideboards
 from rarity import rarity
 
-
 BASIC_LANDS = ('Forest', 'Swamp', 'Mountain', 'Plains', 'Island')
 
 
-def merge(dict_1: Union[Dict[str, int], None], dict_2: Union[Dict[str, int], None]) -> dict:
+def merge(dict_1: dict, dict_2) -> dict:
     """
     Merge 2 dicts of ints: keys from both dicts, values are the sum of values (one dict can be None).
     :dict_1: {"a": 1, "b": 2}
@@ -32,7 +31,7 @@ def merge(dict_1: Union[Dict[str, int], None], dict_2: Union[Dict[str, int], Non
     return summa
 
 
-def get_sideboard_dict(format_name: str) -> Union[Dict[str, dict], None]:
+def get_sideboard_dict(format_name):
     """
     Return sideboard dict of dicts associated to format_name (format_name_Sideboards).
     :param format_name: string (e.g.: 'Modern' or 'Legacy')
@@ -46,17 +45,17 @@ def get_sideboard_dict(format_name: str) -> Union[Dict[str, dict], None]:
 
 
 class Deck:
-    def __init__(self, name: str, mainboard: Dict[str, int], format_name: str, format_dict: dict, coll_dict: dict,
+    def __init__(self, name: str, mainboard: dict, format_name: str, formato: dict, coll_dict: dict,
                  card_prices: dict, sideboard=None):
         """
         Do all calculations on MTG deck given coll_dict.
-        :param name: str (e.g.: 'Tron')
-        :param mainboard: Dict[str, int]
+        :param name: (e.g.: 'Tron')
+        :param mainboard:
         :param format_name: string (e.g.: 'Modern')
-        :param format_dict: dict (e.g.: Modern)
+        :param formato:     dict (e.g.: Modern)
         :param coll_dict:
         :param card_prices: dict of prices (can be USD or EUR)
-        :param sideboard: Dict[str, int]
+        :param sideboard:
         """
         self.name = name
         self.mainboard = mainboard  # dict
@@ -73,12 +72,11 @@ class Deck:
             self.wc = None
 
         self.format_name = format_name
-        self.formato = format_dict
+        self.formato = formato
         self.collection = coll_dict
         self.total = merge(self.mainboard, self.sideboard)  # sum of dicts
         self.card_prices = card_prices  # dict of prices in the right currency (€ or $)
         self.list = None  # overwritten by self.detail when url of specific deck is called
-        self.list_side = None
         self.cards = sum(self.total.values())
 
         # values changed by the loop
@@ -86,13 +84,16 @@ class Deck:
         self.price = 0
         self.your_price = 0  # price you already have but will become price you need
 
-        # ONE LOOP TO CHANGE THEM ALL: only one loop might be more efficient than optimizing single operations
+        # ONE LOOP TO CHANGE THEM ALL: only one loop could be more efficient than optimizing single operations
         for card in self.total:
             card_lower = card.lower()
 
-            # double cards are often not included in deck list or in prices_eur.
+            # double cards are often not included in decklist or in prices_eur.
             # Solve by calling card_prices of only first part e.g.: "status // statue" becomes "status"
-            card_price = self.card_prices.get(card_lower, card_lower.split(" // ")[0])
+            try:
+                card_price = self.card_prices[card_lower]
+            except KeyError:
+                card_price = self.card_prices[card_lower.split(" // ")[0]]
 
             self.price += self.total[card] * card_price
 
@@ -101,7 +102,10 @@ class Deck:
                 # self.wc[rarity[card]] += self.total[card]  # if lands missing, use next comment
                 # add to rarity: {'Forest': "Basic Land", 'Swamp': "Basic Land", 'Mountain': "Basic Land",
                 # 'Plains': "Basic Land", 'Island': "Basic Land"}
-                card_rarity = rarity.get(card, rarity[card.split(" // ")[0]])
+                try:
+                    card_rarity = rarity[card]
+                except KeyError:
+                    card_rarity = rarity[card.split(" // ")[0]]
                 self.wc[card_rarity] += self.total[card]
 
             if card_lower in coll_dict:
@@ -118,7 +122,7 @@ class Deck:
         self.your_price = int(self.price - self.your_price)  # now self.your_price is price you need
         self.value_you_own = int((1 - self.your_price / self.price) * 100)
 
-    def add_list(self, main_or_side: Dict[str, int]) -> list:
+    def add_list(self, main_or_side) -> list:
         """
         Method used by .detail() method to return list of dicts with info about every card in main_or_side (NOT
         self.total, cuz cards in sideboard could be also in main and screw up).
@@ -135,16 +139,24 @@ class Deck:
         """
         info = list()
         for card in main_or_side:
-            card_lower = card.lower()
-            temp = {'name': card, 'copies_total': main_or_side[card]}
+
+            card_name = card
+            # if " // " in card:
+            #     # double cards are often not included in db. Solve by calling only first part
+            #     # e.g.: "status // statue" becomes "status"
+            #     card_name = card.split(" // ")[0]
+            # else:
+            #     card_name = card
+
+            temp = {'name': card_name, 'copies_total': main_or_side[card]}
             # if copies > necessary, copies_owned = copies_total
             temp['copies_owned'] = min(self.collection.get(card.lower(), 0), temp['copies_total'])
             temp['copies_missing'] = temp['copies_total'] - temp['copies_owned']
-            temp['price_for_you'] = round(temp['copies_missing'] * self.card_prices[card_lower], 2)
-            temp['tot_price'] = round(temp['copies_total'] * self.card_prices[card_lower], 2)
+            temp['price_for_you'] = round(temp['copies_missing'] * self.card_prices[card_name.lower()], 2)
+            temp['tot_price'] = round(temp['copies_total'] * self.card_prices[card_name.lower()], 2)
 
             if self.arena is True:
-                temp['wildcards'] = rarity.get(card, rarity[card.split(" // ")[0]])
+                temp['wildcards'] = rarity[card_name]
             info.append(temp)
         return info
 
@@ -157,7 +169,7 @@ class Deck:
             self.list_side = self.add_list(self.sideboard)
 
 
-def get_format(stringa_or_dict: Union[str, Dict[str, Dict[str, int]]]) -> Union[str, Dict[str, Dict[str, int]]]:
+def get_format(stringa_or_dict):
     """
     Return format_name of format or format of format_name.
 
@@ -203,16 +215,16 @@ def get_format(stringa_or_dict: Union[str, Dict[str, Dict[str, int]]]) -> Union[
         return 'Commander'
 
 
-def get_db(my_collection: dict, format_dict: dict, card_prices: dict, sorted_by_value_you_have=True) -> \
+def get_db(my_collection: dict, formato: dict, card_prices: dict, sorted_by_value_you_have=True) -> \
         List[Dict[str, Union[int, Any]]]:
     """
-    Create instances of class Deck for every deck in format_dict, Return list of dictionaries with deck infos to
-    populate html tables.
+    Create instances of class Deck for every deck in formato, Return list of dictionaries with deck infos to populate
+    html tables.
     """
-    db = list()
-    for name, pack in format_dict.items():
-        nth_deck = Deck(name, pack, get_format(format_dict), format_dict, my_collection, card_prices)
-        # UNCOMMENT IN DEVELOPMENT to test all deck lists (like if clicking on every link):
+    db = []
+    for name, pack in formato.items():
+        nth_deck = Deck(name, pack, get_format(formato), formato, my_collection, card_prices)
+        # UNCOMMENT IN DEVELOPMENT to test all decklists (like if clicking on every link):
         # nth_deck.detail()
         temp = {'name': nth_deck.name, 'formato': nth_deck.format_name, 'value': nth_deck.value_you_own,
                 'tot_price': nth_deck.price, 'your_price': nth_deck.your_price, 'cards_needed': nth_deck.cards_you_need,
@@ -225,7 +237,7 @@ def get_db(my_collection: dict, format_dict: dict, card_prices: dict, sorted_by_
     return db
 
 
-def price_collection(price_dict: Dict[str, float], collec_dict: Dict[str, int]) -> Dict[str, Any]:
+def price_collection(price_dict: dict, collec_dict: dict) -> dict:
     """
     Evaluate collec_dict with prices from price_dict.
     :price_dict: dict of prices
@@ -241,10 +253,10 @@ def price_collection(price_dict: Dict[str, float], collec_dict: Dict[str, int]) 
                                     ]
                         }
     """
-    unrec_recognized = dict()  # result. dict including list(unrecognized) and list(recognized) cards
-    unrec = list()
-    recognized = list()
-    temp = dict()
+    unrec_recognized = {}  # result. dict including list(unrecognized) and list(recognized) cards
+    unrec = []
+    recognized = []
+    temp = {}
     tot_copies = 0
     different_cards = 0
     tot_value = 0
@@ -258,30 +270,14 @@ def price_collection(price_dict: Dict[str, float], collec_dict: Dict[str, int]) 
             temp["tot_price"] = round(temp["copies"] * temp["price"], 2)
             recognized.append(temp)
             tot_value = tot_value + temp["tot_price"]
-            temp = dict()
+            temp = {}
         else:
             unrec.append(card)
-    unrec_recognized.update(
-        {"tot_copies": tot_copies,
-         "different_cards": different_cards,
-         "tot_value": round(tot_value, 2),
-         "recognized": recognized,
-         "unrecognized": unrec}
-    )
+    unrec_recognized["tot_copies"] = tot_copies
+    unrec_recognized["different_cards"] = different_cards
+    unrec_recognized["tot_value"] = round(tot_value, 2)
+    unrec_recognized["recognized"] = recognized
+    unrec_recognized["unrecognized"] = unrec
     if len(recognized) > 0:
         unrec_recognized["recognized"] = recognized
     return unrec_recognized
-
-
-if __name__ == "__main__":  # test
-    from prices_eur import prices_eur
-
-    collection = {"ancient stirrings": 4, "kroxa, titan of death's hunger": 4}
-    test = {"disdainful stroke": 3}
-
-    deck = list(Standard.keys())[0]
-    formato = get_db(collection, get_format("Standard"), prices_eur)
-    # dk = Deck('Hazoret Red', Historic_Brawl['Hazoret Red'], 'Historic_Brawl', Historic_Brawl, {}, prices_eur)
-    import pdb
-
-    pdb.set_trace()
