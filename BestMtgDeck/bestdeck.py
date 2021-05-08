@@ -3,10 +3,10 @@ Library to get relevant info from collection and database of MTG Tier decks.
 """
 from typing import List, Union, Any, Dict
 
-from database import Standard, Brawl, Historic, Pioneer, Modern, Legacy, LegacyBudgetToTier, Pauper, Vintage, Cube, \
+from database import Standard, Brawl, Historic, Pioneer, Modern, Legacy, Pauper, Vintage, Cube, \
     Historic_Brawl, Commander, Commander_1v1, \
     Standard_Sideboards, Historic_Sideboards, Pioneer_Sideboards, Modern_Sideboards, \
-    Legacy_Sideboards, LegacyBudgetToTier_Sideboards, Pauper_Sideboards, Vintage_Sideboards, Commander_1v1_Sideboards
+    Legacy_Sideboards, Pauper_Sideboards, Vintage_Sideboards, Commander_1v1_Sideboards
 from rarity import rarity
 
 
@@ -40,7 +40,7 @@ def get_sideboard_dict(format_name: str) -> Union[Dict[str, dict], None]:
     """
     str_to_side = {"Legacy": Legacy_Sideboards, "Standard": Standard_Sideboards, "Modern": Modern_Sideboards,
                    "Pauper": Pauper_Sideboards, "Pioneer": Pioneer_Sideboards,
-                   "Legacy Budget To": LegacyBudgetToTier_Sideboards, "Historic": Historic_Sideboards,
+                   "Historic": Historic_Sideboards,
                    "Vintage": Vintage_Sideboards, "Commander 1vs1": Commander_1v1_Sideboards}
     return str_to_side.get(format_name)
 
@@ -78,7 +78,10 @@ class Deck:
         self.total = merge(self.mainboard, self.sideboard)  # sum of dicts
         self.card_prices = card_prices  # dict of prices in the right currency (€ or $)
         self.list = None  # overwritten by self.detail when url of specific deck is called
-        self.list_side = None
+        # if self.list_side = None Jinja2 will raise an error when looping over None (for decks without Side).
+        # I was unable to verify for type on Jinja2.
+        # 2 solutions: not define self.list_side or define it as empty.
+        self.list_side = dict()
         self.cards = sum(self.total.values())
 
         # values changed by the loop
@@ -92,7 +95,7 @@ class Deck:
 
             # double cards are often not included in deck list or in prices_eur.
             # Solve by calling card_prices of only first part e.g.: "status // statue" becomes "status"
-            card_price = self.card_prices.get(card_lower, card_lower.split(" // ")[0])
+            card_price = self.card_prices.get(card_lower, card_prices[card_lower.split(" // ")[0]])
 
             self.price += self.total[card] * card_price
 
@@ -168,7 +171,7 @@ def get_format(stringa_or_dict: Union[str, Dict[str, Dict[str, int]]]) -> Union[
     """
     # dictionaries are not hashable, so only strings are in format_converter
     format_converter = {'Standard': Standard, 'Brawl': Brawl, 'Historic': Historic, 'Pioneer': Pioneer,
-                        'Modern': Modern, 'Legacy': Legacy, 'Legacy Budget To': LegacyBudgetToTier, 'Pauper': Pauper,
+                        'Modern': Modern, 'Legacy': Legacy, 'Pauper': Pauper,
                         'Vintage': Vintage, 'Cube': Cube, 'Historic Brawl': Historic_Brawl,
                         'Commander 1v1': Commander_1v1, 'Commander': Commander}
 
@@ -183,8 +186,6 @@ def get_format(stringa_or_dict: Union[str, Dict[str, Dict[str, int]]]) -> Union[
         return "Pauper"
     elif stringa_or_dict == Standard:
         return "Standard"
-    elif stringa_or_dict == LegacyBudgetToTier:
-        return "Legacy Budget To"
     elif stringa_or_dict == Pioneer:
         return 'Pioneer'
     elif stringa_or_dict == Brawl:

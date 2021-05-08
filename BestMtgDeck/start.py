@@ -139,11 +139,11 @@ def calc(format_name, deck_name, currency):
         return render_template("wrongformat.html",
                                error=f"{format_name} does not contain {deck_name} or does not contain {deck_name} "
                                      f"anymore. The requested URL was not found on the server.")
-    except TypeError:
-        # if user changes format_name in url / cannot find format_name (Type Error is raised by get_formato() )
-        print(f"Error on url /calc/{format_name}/{deck_name}/{currency}: {format_name} not found", file=sys.stderr)
-        return render_template("wrongformat.html",
-                               error=f"{format_name} does not exist. The requested URL was not found on the server.")
+    # except TypeError:
+    #     # if user changes format_name in url / cannot find format_name (Type Error is raised by get_formato() )
+    #     print(f"Error on url /calc/{format_name}/{deck_name}/{currency}: {format_name} not found", file=sys.stderr)
+    #     return render_template("wrongformat.html",
+    #                            error=f"{format_name} does not exist. The requested URL was not found on the server.")
 
 
 @app.route("/value")
@@ -166,22 +166,27 @@ def evaluate():
 
 @app.route("/decklist_formatter", methods=["POST", "GET"])
 def page_decklist_formatter():
+    # return render_template("test.html")
     if request.method == "GET":
         return render_template("decklist_formatter.html")
-    from format_deck import deck_formatter
-    bbcode_deck, html_deck = deck_formatter(
-        cards=clean_input(request.form["comment"]),
-        deck_name=request.form['info_deck_name'],
-        player_name=request.form['player_name'],
-        event_name=request.form['info_event_name'],
-        role=request.form["info_player_role"],
-        note=request.form['info_note_redazione'])
+    from format_deck import analyse_cards_and_mistakes, group_by_mtg_type, dict_to_bbcode
+    # return str(analyse_cards_and_mistakes(clean_input(request.form["comment"]).splitlines()))
+    cards_and_mistakes = analyse_cards_and_mistakes(clean_input(request.form["comment"]).splitlines())
+    bbcode, html = dict_to_bbcode(group_by_mtg_type(cards_and_mistakes),
+                                  deck_name=request.form['info_deck_name'],
+                                  player_name=request.form['player_name'],
+                                  event_name=request.form['info_event_name'],
+                                  role=request.form["info_player_role"],
+                                  note=request.form['info_note_redazione'])
+
     return render_template("decklist_formatter.html",
                            previous_user_input=request.form["comment"],
-                           parsed_output=bbcode_deck,
-                           test=html_deck,
+                           parsed_output=cards_and_mistakes,
                            player_name=request.form['player_name'],
-                           event_name=request.form['info_event_name'])
+                           event_name=request.form['info_event_name'],
+                           bbcode_deck=bbcode,
+                           html_deck=""
+                           )
 
 
 @app.route("/download1.2")
@@ -193,27 +198,6 @@ def download_file():
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template("wrongformat.html", error="The requested URL was not found on the server and")
-
-
-@app.route("/test", methods=["GET", "POST"])
-def test():
-    # return render_template("test.html")
-    if request.method == "GET":
-        return render_template("test.html")
-    from format_deck import analyse_cards_and_mistakes, group_by_mtg_type, dict_to_bbcode
-    # return str(analyse_cards_and_mistakes(clean_input(request.form["comment"]).splitlines()))
-    cards_and_mistakes = analyse_cards_and_mistakes(clean_input(request.form["comment"]).splitlines())
-    bbcode, html = dict_to_bbcode(group_by_mtg_type(cards_and_mistakes), "", "", "", "", "")
-    return render_template("test.html",
-                           previous_user_input=request.form["comment"],
-                           parsed_output=cards_and_mistakes,
-                           player_name=request.form['player_name'],
-                           event_name=request.form['info_event_name'],
-                           #bbcode_deck=str(cards_and_mistakes)
-                           #bbcode_deck=group_by_mtg_type(cards_and_mistakes)
-                           bbcode_deck=bbcode,
-                           html_deck=html
-                            )
 
 
 if __name__ == "__main__":

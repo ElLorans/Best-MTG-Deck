@@ -9,68 +9,477 @@
             alert("Copied!");
         }
     </script>
+    <html lang="en">
+    <head>
+        <style type="text/css">
 
-    <div class="well">
-        <p><b>Warning:</b> Deck formatter is still an experimental feature. Want to signal any bugs or request new
-            features? Send an email to bestdeckforyou@gmail.com or raise an issue on
-            <a href="https://github.com/ElLorans/Best-MTG-Deck">https://github.com/ElLorans/Best-MTG-Deck</a>
-        </p>
-    </div>
+            #frm_data {
+                font-family: "Arial", sans-serif;
+                font-size: 9pt;
+                line-height: 1.5em;
+            }
 
-    <div class="container">
-        <form class="form-signin" method="post" action="/decklist_formatter">
-            <fieldset>
-                <legend>Additional information</legend>
+            .decklist_output_table {
+                font-family: "Arial", sans-serif;
+                font-size: 9pt;
+                line-height: 1.5em;
+                border-spacing: 0 1px;
+            }
 
-                <label for="frm_info_deck_name">Deck name: </label>
-                <input type="text" name="info_deck_name" id="frm_info_deck_name" value="">
-                <br>
+            .decklist_output_table td {
+                padding: 0;
+            }
 
-                <label for="frm_info_player_name">Player name:</label>
-                <input type="text" name="player_name" id="frm_info_player_name" value={{ player_name }}>
-                <br>
+            .status1,
+            .status-3,
+            .status-2,
+            .status-1 {
+                color: red;
+            }
 
-                <label for="frm_info_event_name">Event name:</label>
-                <input type="text" name="info_event_name" id="frm_info_event_name" value={{ event_name }}>
-                <br>
+            .status0 {
+                color: #7f7f7f;
+            }
 
-                <label for="frm_info_player_role">Role:</label>
-                <select name="info_player_role" id="frm_info_player_role" size="1" class="form_select">
-                    <option value="" selected="selected"></option>
-                    <option value="Winner">Winner</option>
-                    <option value="Finalist">Finalist</option>
-                    <option value="Top 4">Top 4</option>
-                    <option value="Top 8">Top 8</option>
-                    <option value="Top 16">Top 16</option>
-                </select>
-                <label for="frm_info_note_redazione">Note redazione:
-                    <input type="text" name="info_note_redazione" id="frm_info_note_redazione"
-                           size="30" value=""></label>
+            td.decklist_output {
+                width: 30ex;
+            }
 
-            </fieldset>
-            <h2 class="form-signin-heading" style=text-align:center>Input deck:</h2>
-            <button class="btn btn-lg btn-primary btn-block" type="submit">Format</button>
-            <p></p>
-            <div class="form-group">
-                <label for="comment" class="sr-only">Insert Collection:</label>
-                <textarea class="form-control" name="comment" rows="10" id="comment"
-                          placeholder="1 teferi, hero of dominaria" required>{{ previous_user_input }}</textarea>
-            </div>
-            <a href="/decklist_formatter">Clear form</a>
-        </form>
+            .decklist_output a {
+                color: #000000;
+                text-decoration: none;
+            }
 
-        <div style=text-align:center>
-            <p>
-                <b>Parsed output:</b>
-                <button onclick="copyBBDeck()">Copy text</button>
-            </p>
-            <textarea id="bbcode_deck" cols="45" rows="10">
-        {{ parsed_output }}
-    </textarea>
+            .decklist_output a:hover {
+                background-color: #ffcc66;
+                color: #000000;
+                text-decoration: none;
+            }
 
-            <br>
-            <br>
-            {{ test | safe }}
-        </div>
-    </div>
+            .decklist_output_comments {
+                padding-left: 2ex;
+                color: #7f7f7f;
+                white-space: nowrap;
+            }
+
+            .examplesFrame {
+                text-align: right;
+            }
+
+            .example textarea {
+                display: none;
+            }
+
+            form.example {
+                display: inline;
+            }
+
+            div.example {
+                display: inline;
+            }
+
+            .preview table {
+                background-color: #ecf3f7;
+                border-spacing: 4px 4px;
+                font-size: 9pt;
+            }
+
+            .preview table td {
+                vertical-align: top;
+            }
+
+            .preview table tr:first-child td {
+                background-color: #e1e9e9;
+                text-align: center;
+            }
+
+            .preview table tr + tr td {
+            }
+
+            .preview table td a {
+                text-decoration: none;
+                color: #4b6b94;
+            }
+
+            .preview table td[colspan] {
+                background-color: #e1e9e9;
+                text-align: center;
+                vertical-align: middle;
+            }
+
+            .form_table th {
+                white-space: nowrap;
+            }
+
+            #frm_output {
+                width: 100%;
+            }
+
+            .cbcopy-wrapper {
+                float: right;
+            }
+
+            .cbcopy-confirm {
+                margin: 0 4ex;
+                color: green;
+                display: none;
+            }
+
+        </style>
+    </head>
+    <body class="vsc-initialized">
+
+    <div id="g_container">
+        <div id="g_layout">
+
+            <h2><a href=".">Deck List Formatter</a></h2>
+
+            <div class="PageContent">
+
+                <form action="/decklist_formatter" method="post">
+                    <table>
+                        <tbody>
+                        <tr>
+                            <td style="vertical-align: top;"><!-- left column -->
+                                <label for="frm_data">Input deck:</label><br>
+                                <textarea id="frm_data" name="comment" cols="32"
+                                          rows="22">{{ previous_user_input }}</textarea>
+
+                                <p style="text-align: center;"><input type="submit" name="go"
+                                                                      value="Translate &amp; format"
+                                                                      class="form_button"></p>
+
+                                <p style="text-align: center;"><a href="#clear" id="clear_action"
+                                                                  onclick="return clear_form();">Clear deck</a></p>
+
+                            </td>
+                            <td style="vertical-align: top; width: 32ex;"><!-- middle column -->
+                                <b>Parsed output:</b><br>
+
+                                <div class="decklist_output_wrapper">
+
+                                    <table class="decklist_output_table">
+                                        {% for dictionary in parsed_output %}
+                                            <tr>
+                                                <td>
+                                                    {% if dictionary["is_correct"] %}
+                                                        {{ dictionary["line"] }}
+                                                    {% else %}
+                                                        <span class='status-2'>{{ dictionary["line"] }}</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </table>
+                                </div>
+
+                            </td>
+                            <td style="vertical-align: top;"><!-- right column -->
+
+                                <fieldset>
+                                    <legend>Additional information</legend>
+                                    <table class="form_table">
+                                        <tbody>
+                                        <tr>
+                                            <th><label for="frm_info_deck_name" name="info_deck_name">Deck name:</label>
+                                            </th>
+                                            <td><input type="text" name="info_deck_name" id="frm_info_deck_name"
+                                                       value=""></td>
+                                            <th><label for="frm_info_player_name">Player name:</label></th>
+                                            <td><input type="text" name="player_name" id="frm_info_player_name"
+                                                       value=""></td>
+                                        </tr>
+                                        <tr>
+                                            <th><label for="frm_info_event_name" name="info_event_name">Event
+                                                name:</label></th>
+                                            <td><input type="text" name="info_event_name" id="frm_info_event_name"
+                                                       value=""></td>
+                                            <th><label for="frm_info_player_role" name="info_player_role">Role:</label>
+                                            </th>
+                                            <td><select name="info_player_role" id="frm_info_player_role" size="1"
+                                                        class="form_select">
+                                                <option value="" selected="selected"></option>
+                                                <option value="Winner">Winner</option>
+                                                <option value="Finalist">Finalist</option>
+                                                <option value="Top 4">Top 4</option>
+                                                <option value="Top 8">Top 8</option>
+                                                <option value="Top 16">Top 16</option>
+                                            </select></td>
+                                        </tr>
+                                        <tr>
+                                            <th><label for="frm_info_note_redazione">Note redazione:</label></th>
+                                            <td colspan="3"><input type="text" name="info_note_redazione"
+                                                                   id="frm_info_note_redazione" size="60" value=""></td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </fieldset>
+                                <br>
+                                <p>
+                                    <b>BB Code:</b>
+                                    <button onclick="copyBBDeck()">Copy text</button>
+                                </p>
+                                <textarea id="bbcode_deck" name="output" cols="80" rows="10">
+                                    {{- bbcode_deck -}}
+                                </textarea>
+                                <p></p>
+                                <p></p>
+                                {{ html_deck | safe }}
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+
+                </form>
+
+{#                <div class="examplesFrame">#}
+{#                    Try some examples:#}
+{##}
+{#                    <form action="/decklist_formatter" method="post" class="example">#}
+{#                        <div class="example">#}
+{#                            <input type="hidden" name="input_lang" value="">#}
+{#                            <input type="hidden" name="output_lang" value="en">#}
+{#                            <input type="hidden" name="output_format" value="bbcode">#}
+{#                            <input type="hidden" name="info_deck_name" value="UWR Light Beam">#}
+{#                            <input type="hidden" name="info_player_name" value="Marco Caco">#}
+{#                            <input type="hidden" name="info_player_role" value="Finalist">#}
+{#                            <input type="hidden" name="info_event_name" value="Modern World Championship">#}
+{#                            <input type="hidden" name="info_note_redazione" value="Sample example deck 1">#}
+{#                            <textarea name="data" cols="40" rows="40">Creatures#}
+{#    4 Deathrite Shaman#}
+{#    4 Knight of the Reliquary#}
+{#    4 Mother of Runes#}
+{#    1 Qasali Pridemage#}
+{#    1 Scavenging Ooze#}
+{#    2 Stoneforge Mystic#}
+{#    2 Spirit of the Labyrinth#}
+{#    2 Gaddock Teeg#}
+{#    4 Thalia, Guardian of Thraben#}
+{#    1 Dryad Arbor#}
+{##}
+{#Lands#}
+{#    1 Forest#}
+{#    1 Bayou#}
+{#    1 Bojuka Bog#}
+{#    2 Cavern of Souls#}
+{#    1 Horizon Canopy#}
+{#    1 Marsh Flats#}
+{#    2 Savannah#}
+{#    1 Scrubland#}
+{#    3 Verdant Catacombs#}
+{#    4 Wasteland#}
+{#    4 Windswept Heath#}
+{#    1 Karakas#}
+{##}
+{##}
+{#Spells#}
+{#    1 Sword of Fire and Ice#}
+{#    1 Sylvan Library#}
+{#    3 Abrupt Decay#}
+{#    3 Swords to Plowshares#}
+{#    1 Umezawa's Jitte#}
+{#    4 Green Sun's Zenith#}
+{##}
+{#Sideboard#}
+{#    1 Nihil Spellbomb#}
+{#    1 Pithing Needle#}
+{#    1 Sword of Light and Shadow#}
+{#    2 Ethersworn Canonist#}
+{#    1 Burrenton Forge-Tender#}
+{#    2 Containment Priest#}
+{#    1 Choke#}
+{#    2 Zealous Persecution#}
+{#    1 Cataclysm#}
+{#    3 Thoughtseize#}
+{##}
+{#    </textarea>#}
+{#                            <input type="submit" name="go" value="Example 1" class="form_button">#}
+{#                        </div>#}
+{#                    </form>#}
+{##}
+{#                    <form action="/decklist_formatter" method="post" class="example">#}
+{#                        <div class="example">#}
+{#                            <input type="hidden" name="input_lang" value="">#}
+{#                            <input type="hidden" name="output_lang" value="en">#}
+{#                            <input type="hidden" name="output_format" value="bbcode">#}
+{#                            <textarea name="data" cols="40" rows="40">Planeswalker (3)#}
+{#2 Xenagos, the Reveler 1 Nissa, Worldwaker#}
+{#Creature (27)#}
+{#2 Stormbreath Dragon 3 Genesis Hydra 2 Hornet Queen 4 Voyaging Satyr 3 Sylvan Caryatid 3 Elvish Mystic 3 Polukranos, World Eater 2 Whisperwood Elemental 4 Courser of Kruphix 1 Nylea, God of the Hunt#}
+{#Sorcery (2)#}
+{#2 Crater's Claws#}
+{#Instant (4)#}
+{#3 Lightning Strike 1 Wild Slash#}
+{#Land (24)#}
+{#4 Mountain 8 Forest 4 Temple of Abandon 4 Nykthos, Shrine to Nyx 4 Wooded Foothills#}
+{#60 Cards#}
+{#Sideboard (15)#}
+{#1 Hornet Queen 1 Xenagos, the Reveler 2 Nissa, Worldwaker 4 Nylea's Disciple 2 Savage Punch 2 Arc Lightning 1 Barrage of Boulders 2 Destructive Revelry#}
+{#    </textarea>#}
+{#                            <input type="submit" name="go" value="Example 2" class="form_button">#}
+{#                        </div>#}
+{#                    </form>#}
+{##}
+{#                    <form action="/decklist_formatter" method="post" class="example">#}
+{#                        <div class="example">#}
+{#                            <input type="hidden" name="input_lang" value="">#}
+{#                            <input type="hidden" name="output_lang" value="en">#}
+{#                            <input type="hidden" name="output_format" value="bbcode">#}
+{#                            <input type="hidden" name="output_regroup" value="on">#}
+{#                            <!-- Hallowed Fountain should NOT have a comma -->#}
+{#                            <!-- tireless tracker has two spaces instead of one -->#}
+{#                            <!-- kataki war's wage should have a comma inside -->#}
+{#                            <!-- it has a weird splitting algorithm -->#}
+{#                            <textarea name="data" cols="40" rows="40">4 Misty Rainforest#}
+{#4 Windswept Heath#}
+{#2 Flooded Strand#}
+{#2 Temple Garden#}
+{#2 Breeding  ,  Pool#}
+{#1 Hallowed, Fountain#}
+{#2 Forest#}
+{#1 Plains#}
+{#1 Island#}
+{#1 Horizon Canopy#}
+{#1 Ghost Quarter#}
+{#1 Gavony Township#}
+{#1 Birds of Paradise#}
+{#4 Noble Hierarch#}
+{#2 Eternal Witness#}
+{#2 Scavenging Ooze#}
+{#3 Voice of Resurgence#}
+{#3 Reflector Mage#}
+{#3 Meddling Mage#}
+{#4 Knight of the Reliquary#}
+{#4 Spell Queller#}
+{#3 Thalia, Heretic Cathar#}
+{#1 Kira, Great Glass-Spinner#}
+{#4 Collected Company#}
+{#4 Path to Exile#}
+{#Sideboard:#}
+{#1 Tireless  Tracker#}
+{#1 Aven Mindcensor#}
+{#1 Kataki War's Wage#}
+{#3 Stony Silence#}
+{#2 Ethersworn Canonist#}
+{#1 Meddling Mage#}
+{#1 Bojuka Bog#}
+{#2 Tamiyo, Field Researcher#}
+{#2 Kitchen Finks#}
+{#1 Intrepid Hero#}
+{#    </textarea>#}
+{#                            <input type="submit" name="go" value="Example 3" class="form_button">#}
+{#                        </div>#}
+{#                    </form>#}
+{##}
+{#                    <form action="/decklist_formatter" method="post" class="example">#}
+{#                        <div class="example">#}
+{#                            <input type="hidden" name="input_lang" value="">#}
+{#                            <input type="hidden" name="output_lang" value="en">#}
+{#                            <input type="hidden" name="output_format" value="bbcode">#}
+{#                            <input type="hidden" name="output_regroup" value="on">#}
+{#                            <!-- fixes column layout by predicting next group -->#}
+{#                            <textarea name="data" cols="40" rows="40">2 Oko, Thief of Crowns#}
+{#4 Azusa, Lost but Seeking#}
+{#4 Primeval Titan#}
+{#4 Sakura-Tribe Scout#}
+{#3 Ancient Stirrings#}
+{#4 Once Upon a Time#}
+{#1 Pact of Negation#}
+{#4 Summoner's Pact#}
+{#4 Amulet of Vigor#}
+{#1 Engineered Explosives#}
+{#1 Boros Garrison#}
+{#2 Breeding Pool#}
+{#2 Castle Garenbrig#}
+{#1 Cavern of Souls#}
+{#1 Field of the Dead#}
+{#2 Forest#}
+{#2 Gemstone Mine#}
+{#1 Ghost Quarter#}
+{#1 Golgari Rot Farm#}
+{#1 Gruul Turf#}
+{#1 Khalni Garden#}
+{#1 Radiant Fountain#}
+{#1 Selesnya Sanctuary#}
+{#4 Simic Growth Chamber#}
+{#1 Slayers' Stronghold#}
+{#2 Snow-Covered Forest#}
+{#1 Sunhome, Fortress of the Legion#}
+{#3 Tolaria West#}
+{#1 Vesuva#}
+{##}
+{#side#}
+{#1 Cavern of Souls#}
+{#1 Field of the Dead#}
+{#2 Engineered Explosives#}
+{#1 Oko, Thief of Crowns#}
+{#1 Bojuka Bog#}
+{#1 Chameleon Colossus#}
+{#2 Disdainful Stroke#}
+{#2 Dismember#}
+{#1 Force of Vigor#}
+{#1 Obstinate Baloth#}
+{#1 Ramunap Excavator#}
+{#1 Reclamation Sage#}
+{#    </textarea>#}
+{#                            <input type="submit" name="go" value="Example 4" class="form_button">#}
+{#                        </div>#}
+{#                    </form>#}
+{##}
+{#                </div><!-- // end of examples frame -->#}
+
+                <script type="text/javascript" src="../jquery.js"></script>
+
+                <script type="text/javascript">
+
+                    function clear_form() {
+                        document.getElementById('frm_info_deck_name').value = "";
+                        document.getElementById('frm_info_player_name').value = "";
+                        document.getElementById('frm_info_player_role').selectedIndex = 0;
+                        /* do not  clear the event name (requested) */
+                        // document.getElementById('frm_info_event_name').value = "";
+                        document.getElementById('frm_info_note_redazione').value = "";
+                        document.getElementById('frm_data').value = "";
+                        document.getElementById('frm_data').focus();
+                        window.scrollTo(0, 0);
+                        return false;
+                    }
+
+                    $(function () {
+                        var $txtarea = $("#frm_output");
+
+                        $txtarea.on("focus", function () {
+                            console.log("textarea output: focus event selecting all");
+                            this.select();
+
+                            $txtarea.one("mouseup", function () {
+                                console.log("textarea output: mouseup event discarded (once)");
+                                return false;
+                            });
+                        });
+
+                        $("#cbcopy").click(function () {
+                            var $txtarea = $("#frm_output");
+
+                            $txtarea.select();
+                            var ret = document.execCommand("copy");
+                            if (ret)
+                                $(".cbcopy-confirm").fadeIn("fast").delay(750).fadeOut("fast");
+
+                            return false;
+                        });
+                    });
+
+                </script>
+
+            </div><!-- // end of .PageContent -->
+
+
+        </div><!-- // end of #g_layout -->
+
+    </div><!-- // end of #g_container -->
+
+
+    </body>
+    </html>
 {% endblock content %}

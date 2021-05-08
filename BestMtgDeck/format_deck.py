@@ -81,29 +81,34 @@ def dict_to_bbcode(card_types: dict, deck_name: str, player_name: str,
     try:
         ordered_card_types["Sideboard"] = card_types["Sideboard"]
         sideboard_recap = f"Sideboard ({ordered_card_types['Sideboard'][0]}):"
-        sideboard_lines = '\n'.join(ordered_card_types["Sideboard"][1])
+        sideboard_lines = ""
+        for line in ordered_card_types["Sideboard"][1]:
+            card, copies = line_to_tuple(line)
+            sideboard_lines += f"{copies} [card]{card}[/card]\n"
     except KeyError:
         sideboard_recap = f"Sideboard (0):"
         sideboard_lines = ""
 
     bbcode_deck = f"""[table][tr][td3][b]{deck_name}[/b] by {player_name} {role}[/td3][/tr]
-[tr][td][deck]"""
+[tr][td]"""
     tot_main = 0
     for index, (mtg_type, (num_copies, lines)) in enumerate(ordered_card_types.items()):
         if index > 0:
             bbcode_deck += "\n\n"
         if index == half_index:  # change column only at half of types
-            bbcode_deck += "[/deck][/td][td][deck]\n"
+            bbcode_deck += "[/td][td]\n"
         bbcode_deck += f"{mtg_type} ({num_copies}):\n"
-        bbcode_deck += '\n'.join(lines)
+        for line in lines:
+            card, copies = line_to_tuple(line)
+            bbcode_deck += f"{copies} [card]{card}[/card]\n"
         tot_main += num_copies
 
     bbcode_deck += f"""
-[/deck][/td]
-[td][deck]
+[/td]
+[td]
 {sideboard_recap}
 {sideboard_lines}
-[/deck][/td][/tr]
+[/td][/tr]
 {"" if event_name == "" else f"[tr][td3]{event_name}[/td3][/tr]"}
 [tr][td2][i]ndr.[/i]
 {'-' if note == "" else note}[/td2]
