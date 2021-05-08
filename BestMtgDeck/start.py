@@ -139,11 +139,11 @@ def calc(format_name, deck_name, currency):
         return render_template("wrongformat.html",
                                error=f"{format_name} does not contain {deck_name} or does not contain {deck_name} "
                                      f"anymore. The requested URL was not found on the server.")
-    # except TypeError:
-    #     # if user changes format_name in url / cannot find format_name (Type Error is raised by get_formato() )
-    #     print(f"Error on url /calc/{format_name}/{deck_name}/{currency}: {format_name} not found", file=sys.stderr)
-    #     return render_template("wrongformat.html",
-    #                            error=f"{format_name} does not exist. The requested URL was not found on the server.")
+    except TypeError:
+        # if user changes format_name in url / cannot find format_name (Type Error is raised by get_formato() )
+        print(f"Error on url /calc/{format_name}/{deck_name}/{currency}: {format_name} not found", file=sys.stderr)
+        return render_template("wrongformat.html",
+                               error=f"{format_name} does not exist. The requested URL was not found on the server.")
 
 
 @app.route("/value")

@@ -396,6 +396,9 @@ Main Deck: {count_cards_list(main_cards)[0]}
 
 
 if __name__ == "__main__":
+    lista = ["1 liliana del velo"]
+    print(analyse_cards_and_mistakes(lista))
+    import pdb; pdb.set_trace()
     a = deck_formatter("1 tarmogoyf\n1liliana del velo\n1 thoughtseize\n1x ponder\nside\1xponder",
                        "",
                        "",
