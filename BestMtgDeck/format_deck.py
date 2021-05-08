@@ -3,6 +3,23 @@ from mtg_parser import line_to_tuple, titlecase
 from translations import translations
 
 
+def split_bb2(orderd_types: dict) -> int:
+    """
+    Get index at which you need to split columns on bbcode/html.
+    """
+    total_lines = 0
+    lenghts = list()
+    for v in orderd_types.values():
+        type_lines = len(v[1])
+        lenghts.append(type_lines)
+        total_lines += type_lines
+    temp_l = 0
+    for index, l in enumerate(lenghts):
+        temp_l += l
+        if temp_l >= total_lines/2:
+            return index
+
+
 def analyse_cards_and_mistakes(lista: list) -> list:
     """
     Return list of tuples (line, bool) for each line in lista. Bool is True if line is correct, False otherwise.
@@ -70,7 +87,7 @@ def dict_to_bbcode(card_types: dict, deck_name: str, player_name: str,
                    event_name: str, role: str, note: str) -> tuple:
 
     # when reach half of types
-    half_index = int(-(-len(card_types.items()) // 2))
+    # half_index = int(-(-len(card_types.items()) // 2)) - 1
 
     # sort card_types
     ordered_types = ("Creatures", "Sorceries", "Instants", "Enchantments",
@@ -78,6 +95,8 @@ def dict_to_bbcode(card_types: dict, deck_name: str, player_name: str,
     ordered_card_types = {mtg_type: card_types[mtg_type] for mtg_type in ordered_types if mtg_type in card_types}
     # get weird remaining types
     ordered_card_types.update(card_types)
+
+    split_index = split_bb2(ordered_card_types)
     try:
         ordered_card_types["Sideboard"] = card_types["Sideboard"]
         sideboard_recap = f"Sideboard ({ordered_card_types['Sideboard'][0]}):"
@@ -94,14 +113,14 @@ def dict_to_bbcode(card_types: dict, deck_name: str, player_name: str,
     tot_main = 0
     for index, (mtg_type, (num_copies, lines)) in enumerate(ordered_card_types.items()):
         if index > 0:
-            bbcode_deck += "\n\n"
-        if index == half_index:  # change column only at half of types
-            bbcode_deck += "[/td][td]\n"
+            bbcode_deck += "\n"
         bbcode_deck += f"{mtg_type} ({num_copies}):\n"
         for line in lines:
             card, copies = line_to_tuple(line)
             bbcode_deck += f"{copies} [card]{card}[/card]\n"
         tot_main += num_copies
+        if index == split_index:  # change column only at half of types
+            bbcode_deck += "[/td][td]\n"
 
     bbcode_deck += f"""
 [/td]
