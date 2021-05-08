@@ -3,7 +3,7 @@ from mtg_parser import line_to_tuple, titlecase
 from translations import translations
 
 
-def split_bb2(orderd_types: dict) -> int:
+def split_bb(orderd_types: dict) -> int:
     """
     Get index at which you need to split columns on bbcode/html.
     """
@@ -96,7 +96,7 @@ def dict_to_bbcode(card_types: dict, deck_name: str, player_name: str,
     # get weird remaining types
     ordered_card_types.update(card_types)
 
-    split_index = split_bb2(ordered_card_types)
+    split_index = split_bb(ordered_card_types)
     try:
         ordered_card_types["Sideboard"] = card_types["Sideboard"]
         sideboard_recap = f"Sideboard ({ordered_card_types['Sideboard'][0]}):"
