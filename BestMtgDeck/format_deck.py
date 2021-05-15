@@ -16,7 +16,7 @@ def split_bb(orderd_types: dict) -> int:
     temp_l = 0
     for index, l in enumerate(lenghts):
         temp_l += l
-        if temp_l >= total_lines/2:
+        if temp_l >= total_lines / 2:
             return index
 
 
@@ -37,7 +37,7 @@ def analyse_cards_and_mistakes(lista: list) -> list:
                         {"line": f"{num_copies} {card}", "is_correct": True, "card": card, "copies": num_copies}
                     )
                 else:
-                    try:    # If I can translate, I suppose I have type
+                    try:  # If I can translate, I suppose I have type
                         card = translations[card]
                         result.append(
                             {"line": f"{num_copies} {card}", "is_correct": True, "card": card, "copies": num_copies}
@@ -46,7 +46,7 @@ def analyse_cards_and_mistakes(lista: list) -> list:
                         result.append(
                             {"line": f"{num_copies} {card}", "is_correct": False, "card": card, "copies": 0}
                         )
-            except IndexError:
+            except (IndexError, ValueError):
                 result.append({"line": line, "is_correct": False, "card": line, "copies": 0})
         else:
             result.append({"line": line, "is_correct": False, "card": line, "copies": 0})
@@ -85,7 +85,6 @@ def group_by_mtg_type(lista: list) -> dict:
 
 def dict_to_bbcode(card_types: dict, deck_name: str, player_name: str,
                    event_name: str, role: str, note: str) -> tuple:
-
     # when reach half of types
     # half_index = int(-(-len(card_types.items()) // 2)) - 1
 
@@ -150,7 +149,7 @@ Main Deck: {tot_main}
 
     bbcode_to_html = "</td><td valign='top' align='left'>"
     for index, line in enumerate(bbcode_deck.replace("[/deck][/td][td][deck]",
-                                                                bbcode_to_html).replace("[tr][td][deck]", "").splitlines()):
+                                                     bbcode_to_html).replace("[tr][td][deck]", "").splitlines()):
         if line[-2:] == "):":  # if new line is a card type (e.g.: "Creatures (19):"
             if index != 0:  # if it is not the first one, close div tag BEFORE new line
                 html_deck += "</div>"
@@ -169,10 +168,12 @@ Main Deck: {tot_main}
 
     html_deck += f"<td valign='top' align='left'><b>{sideboard_recap}</b><br>"
     try:
-        for dictionary in ordered_card_types["Sideboard"]:
-            card, copies = line_to_tuple(dictionary["line"])
-            html_deck += f"{copies} <a class='simple' target='_blank' rel='noopener noreferrer' " \
-                         f"href='https://deckbox.org/mtg/{card}'>{card}</a><br> "
+        for lista in ordered_card_types["Sideboard"][1:]:
+            # ordered_card_types["Sideboard"]: list[int, list[str]]
+            for line in lista:
+                card, copies = line_to_tuple(line)
+                html_deck += f"{copies} <a class='simple' target='_blank' rel='noopener noreferrer' " \
+                             f"href='https://deckbox.org/mtg/{card}'>{card}</a><br> "
     except KeyError:
         pass
     html_deck += f"""
@@ -201,7 +202,7 @@ def is_mtg_type(stringa: str) -> bool:
     try:
         if stringa.split(" ", 1)[1] in types:
             return True
-    except IndexError:    # e.g.: Sideboard
+    except IndexError:  # e.g.: Sideboard
         return False
     return False
 
@@ -417,7 +418,9 @@ Main Deck: {count_cards_list(main_cards)[0]}
 if __name__ == "__main__":
     lista = ["1 liliana del velo"]
     print(analyse_cards_and_mistakes(lista))
-    import pdb; pdb.set_trace()
+    import pdb
+
+    pdb.set_trace()
     a = deck_formatter("1 tarmogoyf\n1liliana del velo\n1 thoughtseize\n1x ponder\nside\1xponder",
                        "",
                        "",
@@ -442,4 +445,5 @@ if __name__ == "__main__":
 4 oust
 4 lava axe
 4 finale of promise""".splitlines())
-    import pdb; pdb.set_trace()
+
+    pdb.set_trace()
