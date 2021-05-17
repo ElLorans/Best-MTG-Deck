@@ -98,13 +98,13 @@ def dict_to_bbcode(card_types: dict, deck_name: str, player_name: str,
     split_index = split_bb(ordered_card_types)
     try:
         ordered_card_types["Sideboard"] = card_types["Sideboard"]
-        sideboard_recap = f"Sideboard ({ordered_card_types['Sideboard'][0]}):"
+        sideboard_recap = f"Sideboard : {ordered_card_types['Sideboard'][0]}:"
         sideboard_lines = ""
         for line in ordered_card_types["Sideboard"][1]:
             card, copies = line_to_tuple(line)
             sideboard_lines += f"{copies} [card]{card}[/card]\n"
     except KeyError:
-        sideboard_recap = f"Sideboard (0):"
+        sideboard_recap = f"Sideboard: 0"
         sideboard_lines = ""
 
     bbcode_deck = f"""[table][tr][td3][b]{deck_name}[/b] by {player_name} {role}[/td3][/tr]
@@ -116,7 +116,7 @@ def dict_to_bbcode(card_types: dict, deck_name: str, player_name: str,
         bbcode_deck += f"{mtg_type} ({num_copies}):\n"
         for line in lines:
             card, copies = line_to_tuple(line)
-            bbcode_deck += f"{copies} [card]{card}[/card]\n"
+            bbcode_deck += f"{copies} [card]{titlecase(card)}[/card]\n"
         tot_main += num_copies
         if index == split_index:  # change column only at half of types
             bbcode_deck += "[/td][td]\n"
