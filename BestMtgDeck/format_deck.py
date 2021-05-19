@@ -1,3 +1,10 @@
+"""
+Convert list[str] to bbcode and html.
+
+Pipeline:
+analyse_cards_and_mistakes -> group_by_mtg_type -> dict_to_bbcode
+"""
+
 from card_types import cards_to_types
 from mtg_parser import line_to_tuple, titlecase
 from translations import translations
@@ -10,7 +17,7 @@ def split_bb(orderd_types: dict) -> int:
     total_lines = 0
     lenghts = list()
     for v in orderd_types.values():
-        type_lines = len(v[1])
+        type_lines = len(v[1]) + 1   # + 1 takes into account the title of the type
         lenghts.append(type_lines)
         total_lines += type_lines
     temp_l = 0
@@ -79,7 +86,7 @@ def group_by_mtg_type(lista: list) -> dict:
                     cards_by_types[card_type] = [dictionary["copies"], [dictionary["line"]]]
 
     for mtg_type, (total_copies, lines) in cards_by_types.items():
-        lines.sort(reverse=True)
+        lines.sort(reverse=True)   # for each mtg type, sort by num of copies
     return cards_by_types
 
 
@@ -94,15 +101,15 @@ def dict_to_bbcode(card_types: dict, deck_name: str, player_name: str,
     ordered_card_types = {mtg_type: card_types[mtg_type] for mtg_type in ordered_types if mtg_type in card_types}
     # get weird remaining types
     ordered_card_types.update(card_types)
-
+    ordered_card_types.pop("Sideboard", None)      # do not consider sideboard for splitting
     split_index = split_bb(ordered_card_types)
     try:
-        ordered_card_types["Sideboard"] = card_types["Sideboard"]
-        sideboard_recap = f"Sideboard : {ordered_card_types['Sideboard'][0]}:"
-        sideboard_lines = ""
-        for line in ordered_card_types["Sideboard"][1]:
+        # ordered_card_types["Sideboard"] = card_types["Sideboard"]
+        sideboard_recap = f"Sideboard: {card_types['Sideboard'][0]}"
+        sideboard_lines = f"Sideboard ({card_types['Sideboard'][0]}):\n"
+        for line in card_types["Sideboard"][1]:
             card, copies = line_to_tuple(line)
-            sideboard_lines += f"{copies} [card]{card}[/card]\n"
+            sideboard_lines += f"{copies} [card]{titlecase(card)}[/card]\n"
     except KeyError:
         sideboard_recap = f"Sideboard: 0"
         sideboard_lines = ""
@@ -124,7 +131,6 @@ def dict_to_bbcode(card_types: dict, deck_name: str, player_name: str,
     bbcode_deck += f"""
 [/td]
 [td]
-{sideboard_recap}
 {sideboard_lines}
 [/td][/tr]
 {"" if event_name == "" else f"[tr][td3]{event_name}[/td3][/tr]"}
