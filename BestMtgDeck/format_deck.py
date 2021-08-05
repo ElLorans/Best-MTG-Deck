@@ -6,7 +6,7 @@ analyse_cards_and_mistakes -> group_by_mtg_type -> dict_to_bbcode
 """
 
 from card_types import cards_to_types
-from mtg_parser import line_to_tuple, titlecase
+from mtg_parser import line_to_tuple
 from translations import translations
 
 
@@ -109,7 +109,7 @@ def dict_to_bbcode(card_types: dict, deck_name: str, player_name: str,
         sideboard_lines = f"Sideboard ({card_types['Sideboard'][0]}):\n"
         for line in card_types["Sideboard"][1]:
             card, copies = line_to_tuple(line)
-            sideboard_lines += f"{copies} [card]{titlecase(card)}[/card]\n"
+            sideboard_lines += f"{copies} [card]{card.capitalize()}[/card]\n"
     except KeyError:
         sideboard_recap = f"Sideboard: 0"
         sideboard_lines = ""
@@ -123,7 +123,7 @@ def dict_to_bbcode(card_types: dict, deck_name: str, player_name: str,
         bbcode_deck += f"{mtg_type} ({num_copies}):\n"
         for line in lines:
             card, copies = line_to_tuple(line)
-            bbcode_deck += f"{copies} [card]{titlecase(card)}[/card]\n"
+            bbcode_deck += f"{copies} [card]{card.capitalize()}[/card]\n"
         tot_main += num_copies
         if index == split_index:  # change column only at half of types
             bbcode_deck += "[/td][td]\n"

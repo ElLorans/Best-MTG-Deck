@@ -214,7 +214,7 @@ def get_db(my_collection: dict, format_dict: dict, card_prices: dict, sorted_by_
     for name, pack in format_dict.items():
         nth_deck = Deck(name, pack, get_format(format_dict), format_dict, my_collection, card_prices)
         # UNCOMMENT IN DEVELOPMENT to test all deck lists (like if clicking on every link):
-        # nth_deck.detail()
+        nth_deck.detail()
         temp = {'name': nth_deck.name, 'formato': nth_deck.format_name, 'value': nth_deck.value_you_own,
                 'tot_price': nth_deck.price, 'your_price': nth_deck.your_price, 'cards_needed': nth_deck.cards_you_need,
                 'cards_total': nth_deck.cards, 'wc': nth_deck.wc}

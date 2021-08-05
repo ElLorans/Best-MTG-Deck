@@ -1,13 +1,4 @@
-import re
-
-
 BASIC_LANDS = {"island": 25, "mountain": 25, "swamp": 25, "plains": 25, "forest": 25}
-
-
-def titlecase(s):
-    return re.sub(r"[A-Za-z]+('[A-Za-z]+)?",
-                  lambda mo: mo.group(0).capitalize(),
-                  s)
 
 
 def clean_input(stringa: str) -> str:
