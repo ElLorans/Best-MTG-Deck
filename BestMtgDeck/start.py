@@ -189,10 +189,10 @@ def page_decklist_formatter():
                            )
 
 
-@app.route("/download1.2")
+@app.route("/download1.3")
 def download_file():
-    return send_file("outputs/OrensMTGA-EasyExporterV1.2.exe", mimetype="exe",
-                     attachment_filename="OrensMTGA-EasyExporterV1.2.exe", as_attachment=True)
+    return send_file("outputs/OrensMTGA-EasyExporterV1.3.exe", mimetype="exe",
+                     attachment_filename="OrensMTGA-EasyExporterV1.3.exe", as_attachment=True)
 
 
 @app.errorhandler(404)
