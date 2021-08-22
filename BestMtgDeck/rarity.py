@@ -1896,4 +1896,5 @@ rarity = {'Ravnica at War': 'Rare', 'Pteramander': 'Uncommon', 'Waterknot': 'Com
            "Thornmantle Striker": "Uncommon", "Bearded Axe": "Uncommon", "Fire Giant's Fury": "Uncommon",
            "Gilded Assault Cart": "Uncommon", "Elven Ambush": "Uncommon", "Gladewalker Ritualist": "Uncommon",
            "Rampage of the Valkyries": "Uncommon", "Brainstorm": "Rare", "Agent of Treachery": "Rare", "Wilderness Reclamation": "Uncommon",
-           "Field of the Dead": "Rare", "Veil of Summer": "Uncommon"}
+           "Field of the Dead": "Rare", "Veil of Summer": "Uncommon", "Counterspell": "Rare", "Time Warp": "Mythic", "Lightning Bolt": "Rare",
+           "Swords to Plowshares": "Rare", "Dark Ritual": "Rare", "Goblin Gang Leader": "Uncommon"}
