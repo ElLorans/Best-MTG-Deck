@@ -276,7 +276,7 @@ def count_cards_list(cards_list: list, parse_str=True) -> tuple:
                 card, num_copies = line_to_tuple(line)
                 count += num_copies
                 if parse_str:
-                    cleaned_cards_str += f"{num_copies} {titlecase(card)}\n"
+                    cleaned_cards_str += f"{num_copies} {card.capitalize()}\n"
         except ValueError:
             pass
     if parse_str:
@@ -304,9 +304,9 @@ def split_cards_by_type(cards_lines: list) -> str:
                 card_type = get_type(card)
                 if card_type in card_types:
                     card_types[card_type][0] += num_copies
-                    card_types[card_type][1].append(f"{num_copies} {titlecase(card)}")
+                    card_types[card_type][1].append(f"{num_copies} {card.capitalize()}")
                 else:
-                    card_types[card_type] = [num_copies, [f"{num_copies} {titlecase(card)}"]]
+                    card_types[card_type] = [num_copies, [f"{num_copies} {card.capitalize()}"]]
             except (IndexError, ValueError):
                 continue
 
