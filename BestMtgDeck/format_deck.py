@@ -15,13 +15,13 @@ def split_bb(orderd_types: dict) -> int:
     Get index at which you need to split columns on bbcode/html.
     """
     total_lines = 0
-    lenghts = list()
+    lengths = list()
     for v in orderd_types.values():
         type_lines = len(v[1]) + 1   # + 1 takes into account the title of the type
-        lenghts.append(type_lines)
+        lengths.append(type_lines)
         total_lines += type_lines
     temp_l = 0
-    for index, l in enumerate(lenghts):
+    for index, l in enumerate(lengths):
         temp_l += l
         if temp_l >= total_lines / 2:
             return index
