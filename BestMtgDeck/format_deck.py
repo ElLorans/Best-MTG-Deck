@@ -21,9 +21,10 @@ def split_bb(orderd_types: dict) -> int:
         lengths.append(type_lines)
         total_lines += type_lines
     temp_l = 0
+    half = total_lines / 2
     for index, l in enumerate(lengths):
         temp_l += l
-        if temp_l >= total_lines / 2:
+        if temp_l >= half:
             return index
 
 
