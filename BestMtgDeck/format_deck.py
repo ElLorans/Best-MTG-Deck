@@ -10,6 +10,18 @@ from mtg_parser import line_to_tuple
 from translations import translations
 
 
+def capitalize_word(words: str) -> str:
+    """
+    Capitalize word ignoring conjunctions, articles and prepositions.
+    """
+    exceptions = ["and", "or", "the", "a", "of", "in"]
+    words = words.split(" ")
+    final_words = [words[0].capitalize()]
+    final_words += [word if word in exceptions else word.capitalize() for word in words[1:]]
+    final_title = " ".join(final_words)
+    return final_title
+
+
 def split_bb(orderd_types: dict) -> int:
     """
     Get index at which you need to split columns on bbcode/html.
@@ -70,7 +82,7 @@ def group_by_mtg_type(lista: list) -> dict:
     cards_by_types = dict()
     sideboard = False
     for dictionary in lista:
-        if dictionary["line"] == "sideboard":
+        if dictionary["line"].startswith("sideboard"):
             sideboard = True
             cards_by_types["Sideboard"] = [0, list()]
         elif sideboard:
@@ -110,7 +122,7 @@ def dict_to_bbcode(card_types: dict, deck_name: str, player_name: str,
         sideboard_lines = f"Sideboard ({card_types['Sideboard'][0]}):\n"
         for line in card_types["Sideboard"][1]:
             card, copies = line_to_tuple(line)
-            sideboard_lines += f"{copies} [card]{card.capitalize()}[/card]\n"
+            sideboard_lines += f"{copies} [card]{capitalize_word(card)}[/card]\n"
     except KeyError:
         sideboard_recap = f"Sideboard: 0"
         sideboard_lines = ""
@@ -124,7 +136,7 @@ def dict_to_bbcode(card_types: dict, deck_name: str, player_name: str,
         bbcode_deck += f"{mtg_type} ({num_copies}):\n"
         for line in lines:
             card, copies = line_to_tuple(line)
-            bbcode_deck += f"{copies} [card]{card.capitalize()}[/card]\n"
+            bbcode_deck += f"{copies} [card]{capitalize_word(card)}[/card]\n"
         tot_main += num_copies
         if index == split_index:  # change column only at half of types
             bbcode_deck += "[/td][td]\n"
@@ -277,7 +289,7 @@ def count_cards_list(cards_list: list, parse_str=True) -> tuple:
                 card, num_copies = line_to_tuple(line)
                 count += num_copies
                 if parse_str:
-                    cleaned_cards_str += f"{num_copies} {card.capitalize()}\n"
+                    cleaned_cards_str += f"{num_copies} {capitalize_word(card)}\n"
         except ValueError:
             pass
     if parse_str:
@@ -305,9 +317,9 @@ def split_cards_by_type(cards_lines: list) -> str:
                 card_type = get_type(card)
                 if card_type in card_types:
                     card_types[card_type][0] += num_copies
-                    card_types[card_type][1].append(f"{num_copies} {card.capitalize()}")
+                    card_types[card_type][1].append(f"{num_copies} {capitalize_word(card)}")
                 else:
-                    card_types[card_type] = [num_copies, [f"{num_copies} {card.capitalize()}"]]
+                    card_types[card_type] = [num_copies, [f"{num_copies} {capitalize_word(card)}"]]
             except (IndexError, ValueError):
                 continue
 
