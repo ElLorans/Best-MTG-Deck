@@ -13,6 +13,8 @@ from translations import translations
 def capitalize_word(words: str) -> str:
     """
     Capitalize word ignoring conjunctions, articles and prepositions.
+    :param words: "lIlIANA oF tHe VeIL"
+    :return: "Liliana of the Veil"
     """
     exceptions = ["and", "or", "the", "a", "of", "in"]
     words = words.split(" ")
@@ -22,13 +24,14 @@ def capitalize_word(words: str) -> str:
     return final_title
 
 
-def split_bb(orderd_types: dict) -> int:
+def split_bb(ordered_types: dict) -> int:
     """
     Get index at which you need to split columns on bbcode/html.
+    :param ordered_types: Dict[int, Dict[str, int]]
     """
     total_lines = 0
     lengths = list()
-    for v in orderd_types.values():
+    for v in ordered_types.values():
         type_lines = len(v[1]) + 1   # + 1 takes into account the title of the type
         lengths.append(type_lines)
         total_lines += type_lines
@@ -40,14 +43,14 @@ def split_bb(orderd_types: dict) -> int:
             return index
 
 
-def analyse_cards_and_mistakes(lista: list) -> list:
+def analyse_cards_and_mistakes(list_str: list) -> list:
     """
     Return list of tuples (line, bool) for each line in lista. Bool is True if line is correct, False otherwise.
-    :param lista: list[str]
+    :param list_str: list[str]
     :return: List[tuple[str, bool]]
     """
     result = list()
-    for original_line in lista:
+    for original_line in list_str:
         line = original_line.strip()
         if len(line) > 2:
             try:
@@ -73,15 +76,15 @@ def analyse_cards_and_mistakes(lista: list) -> list:
     return result
 
 
-def group_by_mtg_type(lista: list) -> dict:
+def group_by_mtg_type(list_dict: list) -> dict:
     """
     Return dict with lists of 2 elems: # copies and lines.
-    :param lista: List[Dict[str, Any]]
+    :param list_dict: List[Dict[str, Any]]
     :return: Dict[str, List[int, str]]
     """
     cards_by_types = dict()
     sideboard = False
-    for dictionary in lista:
+    for dictionary in list_dict:
         if dictionary["line"].startswith("sideboard"):
             sideboard = True
             cards_by_types["Sideboard"] = [0, list()]
@@ -226,11 +229,13 @@ def is_mtg_type(stringa: str) -> bool:
     return False
 
 
-def remove_mtg_types(lista: list) -> list:
+def remove_mtg_types(list_str: list) -> list:
     """
     Remove card types from list.
+    :param list_str: List[str]
+    :return: List[str]
     """
-    return [line for line in lista if not is_mtg_type(line)]
+    return [line for line in list_str if not is_mtg_type(line)]
 
 
 def get_type(card: str) -> str:
@@ -437,9 +442,6 @@ Main Deck: {count_cards_list(main_cards)[0]}
 if __name__ == "__main__":
     lista = ["1 liliana del velo"]
     print(analyse_cards_and_mistakes(lista))
-    import pdb
-
-    pdb.set_trace()
     a = deck_formatter("1 tarmogoyf\n1liliana del velo\n1 thoughtseize\n1x ponder\nside\1xponder",
                        "",
                        "",
@@ -464,7 +466,7 @@ if __name__ == "__main__":
 4 oust
 4 lava axe
 4 finale of promise""".splitlines())
-    d = deck_formatter("""1 Castle Ardenvale
+    d = dict_to_bbcode(group_by_mtg_type(analyse_cards_and_mistakes("""1 Castle Ardenvale
 2 Castle Vantress
 1 Celestial Colonnade
 4 Flooded Strand
@@ -502,5 +504,7 @@ Sideboard:
 2 Rest in Peace
 2 Shatterstorm
 1 Solitude
-1 Supreme Verdict""".lower(), "", "", "", "", "")
+1 Supreme Verdict""".lower().splitlines())), "", "", "", "", "")
+    print(d[0])
+    import pdb
     pdb.set_trace()
