@@ -14,6 +14,19 @@ from prices_eur import prices_eur
 from prices_usd import prices_usd
 
 
+def load_collections() -> dict():
+    file = "collections.json"
+    try:
+        with open(file) as data:
+            collections = json.load(data)
+
+    except Exception:  # if collections.json is too big, create a new one
+        with open(file, "w") as data:
+            json.dump({"a": 1}, data)
+        collections = dict()
+    return collections
+
+
 def get_currency(wk_local_proxy) -> (str, dict):
     """
     Get tuple of str for html page ($ or €) and dict of prices.
@@ -50,14 +63,7 @@ def sign():
 
 @app.route("/<format_name>/<currency>", methods=["POST", "GET"])
 def show_single_format(format_name, currency="€"):
-    try:
-        with open("collections.json") as data:
-            collections = json.load(data)
-
-    except Exception:  # if collections.json is too big, create a new one
-        with open("collections.json", "w") as data:
-            json.dump({"a": 1}, data)
-        collections = dict()
+    collections = load_collections()
 
     if request.method == "POST":
         # save collection
@@ -106,14 +112,7 @@ def calc(format_name, deck_name, currency):
     """
     Page showing all cards of a particular deck.
     """
-    try:
-        with open("collections.json") as data:
-            collections = json.load(data)
-    except:  # if collections.json is too big, create a new one
-        with open("collections.json", "w") as data:
-            json.dump({"a": 1}, data)
-        collections = dict()
-
+    collections = load_collections()
     prices = prices_usd if currency == "$" else prices_eur
 
     if "user_code" in session:

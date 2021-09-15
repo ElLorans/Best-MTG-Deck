@@ -464,5 +464,43 @@ if __name__ == "__main__":
 4 oust
 4 lava axe
 4 finale of promise""".splitlines())
-
+    d = deck_formatter("""1 Castle Ardenvale
+2 Castle Vantress
+1 Celestial Colonnade
+4 Flooded Strand
+2 Glacial Fortress
+2 Hallowed Fountain
+4 Island
+2 Misty Rainforest
+2 Mystic Gate
+1 Plains
+1 Polluted Delta
+1 Raugrin Triome
+1 Scalding Tarn
+1 Steam Vents
+4 Archmage's Charm
+2 Chalice of the Void
+4 Counterspell
+2 Cryptic Command
+1 Fact or Fiction
+1 Fire // Ice
+4 Prismatic Ending
+4 Shark Typhoon
+1 Snapcaster Mage
+1 Solitude
+2 Spreading Seas
+3 Supreme Verdict
+2 Teferi, Hero of Dominaria
+4 Teferi, Time Raveler
+Sideboard:
+1 Celestial Purge
+1 Crumble to Dust
+3 Dovin's Veto
+1 Emrakul, the Aeons Torn
+2 Engineered Explosives
+1 Fracturing Gust
+2 Rest in Peace
+2 Shatterstorm
+1 Solitude
+1 Supreme Verdict""".lower(), "", "", "", "", "")
     pdb.set_trace()
