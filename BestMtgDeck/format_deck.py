@@ -113,7 +113,7 @@ def dict_to_bbcode(card_types: dict, deck_name: str, player_name: str,
 
     # sort card_types
     ordered_types = ("Creatures", "Sorceries", "Instants", "Enchantments",
-                     "Planeswalker", "Artifacts", "Others", "Lands")
+                     "Planeswalkers", "Artifacts", "Others", "Lands")
     ordered_card_types = {mtg_type: card_types[mtg_type] for mtg_type in ordered_types if mtg_type in card_types}
     # get weird remaining types
     ordered_card_types.update(card_types)
@@ -338,7 +338,7 @@ def split_cards_by_type(cards_lines: list) -> str:
     half_index = int(-(-len(card_types.items()) // 2))
 
     # sort card_types
-    ordered_types = ("Creatures", "Sorceries", "Instants", "Enchantments", "Planeswalker", "Artifacts",
+    ordered_types = ("Creatures", "Sorceries", "Instants", "Enchantments", "Planeswalkers", "Artifacts",
                      "Others", "Lands")
     ordered_card_types = {mtg_type: card_types[mtg_type] for mtg_type in ordered_types if mtg_type in card_types}
     # get weird remaining types
