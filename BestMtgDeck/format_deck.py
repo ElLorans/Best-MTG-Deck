@@ -5,7 +5,7 @@ Pipeline:
 analyse_cards_and_mistakes -> group_by_mtg_type -> dict_to_bbcode
 """
 
-from card_types import cards_to_types
+from card_types import card_types
 from mtg_parser import line_to_tuple
 from translations import translations
 
@@ -55,7 +55,7 @@ def analyse_cards_and_mistakes(list_str: list) -> list:
         if len(line) > 2:
             try:
                 card, num_copies = line_to_tuple(line)
-                if card in cards_to_types:
+                if card in card_types:
                     result.append(
                         {"line": f"{num_copies} {card}", "is_correct": True, "card": card, "copies": num_copies}
                     )
@@ -244,7 +244,7 @@ def get_type(card: str) -> str:
     :param card: MUST BE lowercase
     :return: str
     """
-    card_type = cards_to_types.get(card, 'other').lower()
+    card_type = card_types.get(card, 'other').lower()
     pretty_types = {'land': 'Lands', 'summon': 'Creatures', 'creature': 'Creatures',
                     'planeswalker': 'Planeswalkers', 'enchantment': 'Enchantments',
                     'artifact': 'Artifacts', 'sorcery': 'Sorceries', 'instant': 'Instants'}
