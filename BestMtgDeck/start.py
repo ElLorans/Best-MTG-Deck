@@ -6,7 +6,7 @@ import os
 import random
 import sys
 
-from flask import Flask, render_template, request, send_file, session
+from flask import Flask, render_template, request, session
 
 from bestdeck import Deck, get_db, get_format, price_collection
 from mtg_parser import BASIC_LANDS, clean_input, parse_collection
@@ -14,7 +14,7 @@ from prices_eur import prices_eur
 from prices_usd import prices_usd
 
 
-def load_collections() -> dict():
+def load_collections() -> dict:
     file = "collections.json"
     try:
         with open(file) as data:
@@ -27,10 +27,10 @@ def load_collections() -> dict():
     return collections
 
 
-def get_currency(wk_local_proxy) -> (str, dict):
+def get_currency(wk_local_proxy) -> tuple[str, dict[str, float]]:
     """
     Get tuple of str for html page ($ or €) and dict of prices.
-    :param wk_local_proxy: class 'werkzeug.local.LocalProxy'
+    param wk_local_proxy: class 'werkzeug.local.LocalProxy'
     :return: tuple (str, dict)
     """
     if "dollars" not in wk_local_proxy.form:  # if tick box for USD is not checked by user
@@ -49,12 +49,12 @@ app.secret_key = os.getenv("SECRET KEY", b':\xafq\x87\xe0\x12\xbfU\xeeC\x9b\x17\
 
 
 @app.route("/")
-def home():
+def home() -> str:
     return render_template("home.html")
 
 
 @app.route("/sign")
-def sign():
+def sign() -> str:
     """
     Form to insert coll_dict.
     """
@@ -62,7 +62,7 @@ def sign():
 
 
 @app.route("/<format_name>/<currency>", methods=["POST", "GET"])
-def show_single_format(format_name, currency="€"):
+def show_single_format(format_name, currency="€") -> str:
     collections = load_collections()
 
     if request.method == "POST":
@@ -108,7 +108,7 @@ def show_single_format(format_name, currency="€"):
 
 
 @app.route("/calc/<format_name>/<deck_name>/<currency>", strict_slashes=False, methods=["GET"])
-def calc(format_name, deck_name, currency):
+def calc(format_name, deck_name, currency) -> str:
     """
     Page showing all cards of a particular deck.
     """
@@ -146,12 +146,12 @@ def calc(format_name, deck_name, currency):
 
 
 @app.route("/value")
-def values():
+def values() -> str:
     return render_template("value.html")
 
 
 @app.route("/value_result", methods=["POST"])
-def evaluate():
+def evaluate() -> str:
     try:
         collection = parse_collection(request.form["comment"], add_basics=False)
     except (IndexError, ValueError) as err:
@@ -164,7 +164,7 @@ def evaluate():
 
 
 @app.route("/decklist_formatter", methods=["POST", "GET"])
-def page_decklist_formatter():
+def page_decklist_formatter() -> str:
     # return render_template("test.html")
     if request.method == "GET":
         return render_template("decklist_formatter.html")
@@ -188,14 +188,8 @@ def page_decklist_formatter():
                            )
 
 
-@app.route("/download1.3")
-def download_file():
-    return send_file("outputs/OrensMTGA-EasyExporterV1.3.exe", mimetype="exe",
-                     attachment_filename="OrensMTGA-EasyExporterV1.3.exe", as_attachment=True)
-
-
 @app.errorhandler(404)
-def page_not_found(e):
+def page_not_found(e) -> str:
     return render_template("wrongformat.html", error="The requested URL was not found on the server and")
 
 
