@@ -6,3 +6,6 @@ __pycache__/
 .venv
 env/
 venv/
+
+# User data
+collections.json
