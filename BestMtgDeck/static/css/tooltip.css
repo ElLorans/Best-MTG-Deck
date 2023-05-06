@@ -1,0 +1,74 @@
+@media (hover: hover) and (pointer: fine) {
+    a:hover .cardtrader_i_tooltip {
+        visibility: visible !important;
+    }
+}
+
+.cardtrader_i_tooltip {
+    position: absolute;
+    z-index: 200;
+    border: 1px solid #ccc;
+    background-color: #F7F7F7;
+    padding: 10px;
+    max-height: 340px;
+    visibility: hidden;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.cardtrader_i_tooltip img {
+    max-height: 310px !important;
+    max-width: 310px !important;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.cardtrader_i_tooltip p {
+    border-radius: 3px;
+    background-color: white;
+    font-style: italic;
+    color: grey;
+    width: max-content;
+    max-width: 300px;
+    font-family: Helvetica, Arial, sans-serif;
+}
+
+.cardtrader_i_tooltip p {
+    font-weight: bold;
+    text-align: center;
+    width: 100%;
+    box-sizing: border-box;
+    background-color: inherit;
+    margin-top: 5px;
+    margin-bottom: 0;
+}
+
+/*blockquote {*/
+    /* overrides Metagame CSS or tooltips' overflow is hidden */
+    /*overflow: visible !important;
+}
+
+.content {*/
+    /* overrides Metagame CSS or tooltips' overflow is hidden */
+    /*overflow: visible !important;
+}
+
+.post {*/
+     /* overrides Metagame CSS or tooltips' overflow is hidden */
+    /* overflow: visible !important;
+}
+*/
+
+/*
+.CardTraderTooltip {
+    /* Ensure that tooltip with position absolute is displayed as a child
+    /* in case container of cardname has not position relative
+    position: relative !important;
+}
+
+
+#topicreview {
+    position: relative;
+}
+*/

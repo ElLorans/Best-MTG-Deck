@@ -6,7 +6,7 @@ import os
 import random
 import sys
 
-from flask import Flask, render_template, request, session
+from flask import Flask, render_template, request, session, send_file
 
 from bestdeck import Deck, get_db, get_format, price_collection
 from mtg_parser import BASIC_LANDS, clean_input, parse_collection
@@ -184,13 +184,23 @@ def page_decklist_formatter() -> str:
                            player_name=request.form['player_name'],
                            event_name=request.form['info_event_name'],
                            bbcode_deck=bbcode,
-                           html_deck=""      #html
+                           html_deck=""  # html
                            )
 
 
 @app.errorhandler(404)
 def page_not_found(e) -> str:
     return render_template("wrongformat.html", error="The requested URL was not found on the server and")
+
+
+@app.route("/api/tooltip.js")
+def tooltip():
+    return send_file("static/js/tooltip.js")
+
+
+@app.route("/api/tooltip.css")
+def css_tooltip():
+    return send_file("static/css/tooltip.css")
 
 
 if __name__ == "__main__":
