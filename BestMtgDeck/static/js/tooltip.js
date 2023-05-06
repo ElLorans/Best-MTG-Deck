@@ -1,16 +1,18 @@
 function positionTooltip(tooltip, parent) {
-  const parentRect = parent.getBoundingClientRect();
-  const tooltipRect = tooltip.getBoundingClientRect();
+    // ensure tooltip is below parent, even if weird legacy CSS would position it differently
+    const parentRect = parent.getBoundingClientRect();
+    // const tooltipRect = tooltip.getBoundingClientRect();
 
-  // Calculate the left and top positions for the tooltip
-  const left = parentRect.right;
-  const top = parentRect.top + parentRect.height;
+    // Calculate the left and top positions for the tooltip, taking scroll offset into account
+    // const left = parentRect.left + parentRect.width + 5 + window.scrollX;
+    const top = parentRect.top + 5 + window.scrollY;
 
-  // Apply the left and top positions to the tooltip
-  // tooltip.style.position = 'absolute';
-  tooltip.style.left = left + 'px';
-  tooltip.style.top = top + 'px';
+    // Apply the left and top positions to the tooltip
+    // tooltip.style.position = 'absolute';
+    // tooltip.style.left = left + 'px';
+    tooltip.style.top = top + 'px';
 }
+
 
 function isElementInViewport(el) {
     const rect = el.getBoundingClientRect();
@@ -24,11 +26,11 @@ function isElementInViewport(el) {
 
 function move(el) {
     if (!isElementInViewport(el)) {
-        el.style.left = (window.innerWidth - el.offsetWidth*1.5) + "px";
+        el.style.left = (window.innerWidth - el.offsetWidth * 1.5) + "px";
     }
 }
 
-function createTooltip(target_link, cardName, storeLink, prices_cache) {
+function createTooltip(target_link, cardName, storeLink, prices_cache, event) {
     let tooltip_div = target_link.querySelector('a');
     let text;
 
@@ -104,20 +106,20 @@ links.forEach(link => {
                 link.target = "_blank";
             }
         }
-        link.addEventListener('mouseover', () => createTooltip(link, cardName, storeLink, prices));
+        link.addEventListener('mouseover', (event) => createTooltip(link, cardName, storeLink, prices, event));
         link.addEventListener('pointerdown', (event) => {
-            createTooltip(link, cardName, storeLink, prices);
+            createTooltip(link, cardName, storeLink, prices, event);
             if (event.pointerType === "touch" && event.target === link) {
-                    event.preventDefault();
-                    let tooltip = link.querySelector('.cardtrader_i_tooltip');
-                    let tooltips = document.querySelectorAll('.cardtrader_i_tooltip');
-                    if (tooltip.style.visibility === 'visible') {
-                        tooltips.forEach(tooltip => tooltip.style.visibility = 'hidden');
-                    } else {
-                        tooltips.forEach(tooltip => tooltip.style.visibility = 'hidden');
-                        tooltip.style.visibility = 'visible';
-                    }
+                event.preventDefault();
+                let tooltip = link.querySelector('.cardtrader_i_tooltip');
+                let tooltips = document.querySelectorAll('.cardtrader_i_tooltip');
+                if (tooltip.style.visibility === 'visible') {
+                    tooltips.forEach(tooltip => tooltip.style.visibility = 'hidden');
+                } else {
+                    tooltips.forEach(tooltip => tooltip.style.visibility = 'hidden');
+                    tooltip.style.visibility = 'visible';
                 }
+            }
         });
     }
 );
