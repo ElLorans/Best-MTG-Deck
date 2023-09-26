@@ -3,6 +3,8 @@ Library to get relevant info from collection and database of MTG Tier decks.
 """
 from typing import List, Union, Any, Dict
 
+from flask import current_app
+
 from database import Standard, Brawl, Historic, Pioneer, Modern, Legacy, Pauper, Vintage, Cube, \
     Historic_Brawl, Commander, Commander_1v1, \
     Standard_Sideboards, Historic_Sideboards, Pioneer_Sideboards, Modern_Sideboards, \
@@ -43,6 +45,16 @@ def get_sideboard_dict(format_name: str) -> Union[Dict[str, dict], None]:
                    "Historic": Historic_Sideboards,
                    "Vintage": Vintage_Sideboards, "Commander 1vs1": Commander_1v1_Sideboards}
     return str_to_side.get(format_name)
+
+
+def get_card_price(card_lower: str, card_prices: dict) -> float:
+    try:
+        card_price = card_prices.get(card_lower, card_prices[card_lower.split(" // ")[0]])
+    except KeyError:
+        card_price = 0.0
+        print(card_lower)
+
+    return card_price
 
 
 class Deck:
@@ -95,7 +107,7 @@ class Deck:
 
             # double cards are often not included in deck list or in prices_eur.
             # Solve by calling card_prices of only first part e.g.: "status // statue" becomes "status"
-            card_price = self.card_prices.get(card_lower, card_prices[card_lower.split(" // ")[0]])
+            card_price = get_card_price(card_lower, self.card_prices)
 
             self.price += self.total[card] * card_price
 
@@ -143,8 +155,9 @@ class Deck:
             # if copies > necessary, copies_owned = copies_total
             temp['copies_owned'] = min(self.collection.get(card.lower(), 0), temp['copies_total'])
             temp['copies_missing'] = temp['copies_total'] - temp['copies_owned']
-            temp['price_for_you'] = round(temp['copies_missing'] * self.card_prices[card_lower], 2)
-            temp['tot_price'] = round(temp['copies_total'] * self.card_prices[card_lower], 2)
+            card_price = get_card_price(card_lower, self.card_prices)
+            temp['price_for_you'] = round(temp['copies_missing'] * card_price, 2)
+            temp['tot_price'] = round(temp['copies_total'] * card_price, 2)
 
             if self.arena is True:
                 temp['wildcards'] = rarity.get(card, rarity[card.split(" // ")[0]])
@@ -213,8 +226,8 @@ def get_db(my_collection: dict, format_dict: dict, card_prices: dict, sorted_by_
     db = list()
     for name, pack in format_dict.items():
         nth_deck = Deck(name, pack, get_format(format_dict), format_dict, my_collection, card_prices)
-        # UNCOMMENT IN DEVELOPMENT to test all deck lists (like if clicking on every link):
-        # nth_deck.detail()
+        if current_app.config["DEBUG"] is True:  # test all deck lists (like if clicking on every link)
+            nth_deck.detail()
         temp = {'name': nth_deck.name, 'formato': nth_deck.format_name, 'value': nth_deck.value_you_own,
                 'tot_price': nth_deck.price, 'your_price': nth_deck.your_price, 'cards_needed': nth_deck.cards_you_need,
                 'cards_total': nth_deck.cards, 'wc': nth_deck.wc}
