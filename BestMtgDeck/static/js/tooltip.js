@@ -1,15 +1,11 @@
 function positionTooltip(tooltip, parent) {
     // ensure tooltip is below parent, even if weird legacy CSS would position it differently
     const parentRect = parent.getBoundingClientRect();
-    // const tooltipRect = tooltip.getBoundingClientRect();
 
     // Calculate the left and top positions for the tooltip, taking scroll offset into account
-    // const left = parentRect.left + parentRect.width + 5 + window.scrollX;
     const top = parentRect.top + 5 + window.scrollY;
 
     // Apply the left and top positions to the tooltip
-    // tooltip.style.position = 'absolute';
-    // tooltip.style.left = left + 'px';
     tooltip.style.top = top + 'px';
 }
 
@@ -17,9 +13,6 @@ function positionTooltip(tooltip, parent) {
 function isElementInViewport(el) {
     const rect = el.getBoundingClientRect();
     return (
-        // rect.top >= 0 &&
-        // rect.left >= 0 &&
-        // rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
         rect.right <= (window.innerWidth || document.documentElement.clientWidth)
     );
 }
@@ -130,3 +123,19 @@ link.rel = 'stylesheet';
 link.type = 'text/css';
 link.href = 'https://bestdeckforyou.pythonanywhere.com/static/css/tooltip.css';
 document.head.appendChild(link);
+
+// Set default rimg bbtag to 300
+// Get all div elements with class "content"
+const contentDivs = document.querySelectorAll('div.content');
+
+// Iterate over each div with class "content"
+contentDivs.forEach(div => {
+    // Get the inner HTML of the div
+    let content = div.innerHTML;
+
+    // Replace [rimg]...[/rimg] with <img> tags
+    content = content.replace(/\[rimg\]([\s\S]*?)\[\/rimg\]/g, '<img src="$1" width="300" border="1">');
+
+    // Set the modified content back to the div
+    div.innerHTML = content;
+});
