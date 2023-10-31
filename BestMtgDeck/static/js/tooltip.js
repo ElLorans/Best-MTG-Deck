@@ -1,3 +1,20 @@
+// Set default rimg bbtag to 300
+// Get all div elements with class "content"
+// this code must run before adding event listeners
+const contentDivs = document.querySelectorAll('div.content');
+
+// Iterate over each div with class "content"
+contentDivs.forEach(div => {
+    // Get the inner HTML of the div
+    let content = div.innerHTML;
+
+    // Replace [rimg]...[/rimg] with <img> tags
+    content = content.replace(/\[rimg\]([\s\S]*?)\[\/rimg\]/g, '<img src="$1" width="300" border="1">');
+
+    // Set the modified content back to the div
+    div.innerHTML = content;
+});
+
 function positionTooltip(tooltip, parent) {
     // ensure tooltip is below parent, even if weird legacy CSS would position it differently
     const parentRect = parent.getBoundingClientRect();
@@ -123,19 +140,3 @@ link.rel = 'stylesheet';
 link.type = 'text/css';
 link.href = 'https://bestdeckforyou.pythonanywhere.com/static/css/tooltip.css';
 document.head.appendChild(link);
-
-// Set default rimg bbtag to 300
-// Get all div elements with class "content"
-const contentDivs = document.querySelectorAll('div.content');
-
-// Iterate over each div with class "content"
-contentDivs.forEach(div => {
-    // Get the inner HTML of the div
-    let content = div.innerHTML;
-
-    // Replace [rimg]...[/rimg] with <img> tags
-    content = content.replace(/\[rimg\]([\s\S]*?)\[\/rimg\]/g, '<img src="$1" width="300" border="1">');
-
-    // Set the modified content back to the div
-    div.innerHTML = content;
-});
