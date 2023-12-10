@@ -13,6 +13,22 @@ contentDivs.forEach(div => {
 
     // Set the modified content back to the div
     div.innerHTML = content;
+	
+	// Remove too many br tags before tables
+	var tables = div.querySelectorAll('table');
+	tables.forEach(table => {
+		// Find all the <br> tags before the table
+		var prevSibling = table.previousSibling;
+		var granSibling = prevSibling ? prevSibling.previousSibling : null;
+		while (prevSibling && granSibling && prevSibling.tagName==='BR' && granSibling.tagName==='BR') {
+			if (granSibling.previousSibling && granSibling.previousSibling.tagName==='BR') {
+				granSibling.previousSibling.remove()
+			}
+			else {
+				break
+			}
+		}
+	})
 });
 
 function positionTooltip(tooltip, parent) {
