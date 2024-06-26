@@ -157,7 +157,6 @@ prices_eur = {'black lotus': 6826.21, 'mox sapphire': 2538.67, 'time walk': 1480
 'name sticker goblin': 1 ,
 'harvester of misery': 1 ,
 'indoraptor, the perfect hybrid': 1 ,
-'lagonnband trailblazer': 1 ,
 'worldwalker helm': 1.5,
 
 
