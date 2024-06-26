@@ -8,7 +8,7 @@ from flask import current_app
 from database import Standard, Brawl, Historic, Pioneer, Modern, Legacy, Pauper, Vintage, Cube, \
     Historic_Brawl, Commander, Commander_1v1, \
     Standard_Sideboards, Historic_Sideboards, Pioneer_Sideboards, Modern_Sideboards, \
-    Legacy_Sideboards, Pauper_Sideboards, Vintage_Sideboards, Commander_1v1_Sideboards
+    Legacy_Sideboards, Pauper_Sideboards, Vintage_Sideboards, Commander_1v1_Sideboards, Timeless, Timeless_Sideboards
 from rarity import rarity
 
 
@@ -43,7 +43,8 @@ def get_sideboard_dict(format_name: str) -> Union[Dict[str, dict], None]:
     str_to_side = {"Legacy": Legacy_Sideboards, "Standard": Standard_Sideboards, "Modern": Modern_Sideboards,
                    "Pauper": Pauper_Sideboards, "Pioneer": Pioneer_Sideboards,
                    "Historic": Historic_Sideboards,
-                   "Vintage": Vintage_Sideboards, "Commander 1vs1": Commander_1v1_Sideboards}
+                   "Vintage": Vintage_Sideboards, "Commander 1vs1": Commander_1v1_Sideboards,
+                   "Timeless": Timeless_Sideboards}
     return str_to_side.get(format_name)
 
 
@@ -77,7 +78,7 @@ class Deck:
                 self.sideboard = get_sideboard_dict(format_name)[name]
             else:
                 self.sideboard = None
-        if format_name in ("Standard", "Brawl", "Historic", "Historic Brawl"):
+        if format_name in ("Standard", "Brawl", "Historic", "Historic Brawl", "Timeless"):
             self.arena = True
             self.wc = {'Mythic': 0, 'Rare': 0, 'Uncommon': 0, 'Common': 0}  # wc YOU NEED
         else:
@@ -183,7 +184,7 @@ def get_format(stringa_or_dict: Union[str, Dict[str, Dict[str, int]]]) -> Union[
     Impure Function
     """
     # dictionaries are not hashable, so only strings are in format_converter
-    format_converter = {'Standard': Standard, 'Brawl': Brawl, 'Historic': Historic, 'Pioneer': Pioneer,
+    format_converter = {'Standard': Standard, 'Timeless': Timeless, 'Brawl': Brawl, 'Historic': Historic, 'Pioneer': Pioneer,
                         'Modern': Modern, 'Legacy': Legacy, 'Pauper': Pauper,
                         'Vintage': Vintage, 'Cube': Cube, 'Historic Brawl': Historic_Brawl,
                         'Commander 1v1': Commander_1v1, 'Commander': Commander}
@@ -199,6 +200,8 @@ def get_format(stringa_or_dict: Union[str, Dict[str, Dict[str, int]]]) -> Union[
         return "Pauper"
     elif stringa_or_dict == Standard:
         return "Standard"
+    elif stringa_or_dict == Timeless:
+        return "Timeless"
     elif stringa_or_dict == Pioneer:
         return 'Pioneer'
     elif stringa_or_dict == Brawl:
