@@ -1188,7 +1188,7 @@ Cube = {'MTGO Vintage Cube': {'Benevolent Bodyguard': 1, 'Esper Sentinel': 1, 'G
                                               'Cast into the Fire': 1, 'Kozilek, Butcher of Truth': 1, 'Nettlecyst': 1,
                                               "Goryo's Vengeance": 1, 'Bitter Triumph': 1, 'Cut Down': 1,
                                               'Aragorn, King of Gondor': 1, 'Coalition Relic': 1,
-                                              "Uro, Titan of Nature's Wrath": 1, '"Name Sticker" Goblin': 1,
+                                              "Uro, Titan of Nature's Wrath": 1, '_____ goblin': 1,
                                               'Mana Tithe': 1, 'Elspeth, Knight-Errant': 1, 'Portable Hole': 1,
                                               'Glimmer Lens': 1, 'Sanguine Evangelist': 1, 'Dig Through Time': 1,
                                               "Thassa's Oracle": 1, 'Doomsday': 1, 'Unearth': 1,
