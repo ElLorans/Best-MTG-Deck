@@ -162,29 +162,23 @@ def evaluate() -> str:
 
     return render_template("your_value.html", value=price_collection(prices, collection), currency=currency_html)
 
-
 @app.route("/decklist_formatter", methods=["POST", "GET"])
 def page_decklist_formatter() -> str:
-    # return render_template("test.html")
     if request.method == "GET":
-        return render_template("decklist_formatter.html")
+        return render_template("bbcode_formatter.html", fieldset_data={})
     from format_deck import analyse_cards_and_mistakes, group_by_mtg_type, dict_to_bbcode
-    # return str(analyse_cards_and_mistakes(clean_input(request.form["comment"]).splitlines()))
-    cards_and_mistakes = analyse_cards_and_mistakes(clean_input(request.form["comment"]).splitlines())
+    cards_and_mistakes = analyse_cards_and_mistakes(clean_input(request.form["decklist"]).splitlines())
     bbcode, html = dict_to_bbcode(group_by_mtg_type(cards_and_mistakes),
-                                  deck_name=request.form['info_deck_name'],
+                                  deck_name=request.form['deck_name'],
                                   player_name=request.form['player_name'],
-                                  event_name=request.form['info_event_name'],
-                                  role=request.form["info_player_role"],
-                                  note=request.form['info_note_redazione'])
-
-    return render_template("decklist_formatter.html",
-                           previous_user_input=request.form["comment"],
+                                  event_name=request.form['event_name'],
+                                  role=request.form["player_role"],
+                                  note=request.form['note_redazione'])
+    return render_template("bbcode_formatter.html",
+                           fieldset_data={
+                               **request.form, },
+                           bbcode=bbcode,
                            parsed_output=cards_and_mistakes,
-                           player_name=request.form['player_name'],
-                           event_name=request.form['info_event_name'],
-                           bbcode_deck=bbcode,
-                           html_deck=""  # html
                            )
 
 
