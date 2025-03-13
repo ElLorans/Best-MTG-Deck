@@ -76,7 +76,7 @@ function createTooltip(target_link, cardName, storeLink, prices_cache, event) {
 		if (cardName in customCardsUrls) {
 			img.src = tooltip_div.href = customCardsUrls[cardName]
 		} else {
-			img.src = tooltip_div.href = "https://www.cardtrader.com/api/metagame_it/v1/magic/" + cardName + '/image';
+			img.src = tooltip_div.href = "https://api.cardtrader.com/api/metagame_it/v1/magic/" + cardName + '/image';
 		}
         let imgLink = document.createElement('a');
         imgLink.href = storeLink;
@@ -94,7 +94,7 @@ function createTooltip(target_link, cardName, storeLink, prices_cache, event) {
         text.textContent = "A partire da: " + prices_cache[cardName] + " €";
     } else {
         text.textContent = "Loading...";
-        fetch("https://www.cardtrader.com/api/metagame_it/v1/magic/" +
+        fetch("https://api.cardtrader.com/api/metagame_it/v1/magic/" +
             cardName + "/info")
             .then(response => response.json())
             .then(response => {
@@ -116,7 +116,7 @@ postBodies.forEach(postBody => {
     if (touchDevice) {
         replaceValue = '<a class="CardTraderTooltip">$1</a>';
     } else {
-        replaceValue = '<a href="https://www.cardtrader.com/api/metagame_it/v1/magic/$1/shop" class="CardTraderTooltip" target="_blank">$1</a>';
+        replaceValue = '<a href="https://api.cardtrader.com/api/metagame_it/v1/magic/$1/shop" class="CardTraderTooltip" target="_blank">$1</a>';
     }
     postBody.innerHTML = postBody.innerHTML.replace(/\[card\](.*?)\[\/card\]/gi,
         replaceValue);
@@ -129,7 +129,7 @@ let prices = {};  // cache for prices
 links.forEach(link => {
         // remove the back face from double faced cards
         const cardName = link.textContent.trim().split(" /", 1)[0];
-        const storeLink = "https://www.cardtrader.com/api/metagame_it/v1/magic/" + cardName + "/shop";
+        const storeLink = "https://api.cardtrader.com/api/metagame_it/v1/magic/" + cardName + "/shop";
         if (touchDevice) {
             link.href = "#void";
             link.removeAttribute('target');
