@@ -266,32 +266,11 @@ def get_format(
     if isinstance(stringa_or_dict, str):
         return format_converter[stringa_or_dict]
 
-    elif stringa_or_dict == Modern:
-        return "Modern"
-    elif stringa_or_dict == Legacy:
-        return "Legacy"
-    elif stringa_or_dict == Pauper:
-        return "Pauper"
-    elif stringa_or_dict == Standard:
-        return "Standard"
-    elif stringa_or_dict == Timeless:
-        return "Timeless"
-    elif stringa_or_dict == Pioneer:
-        return "Pioneer"
-    elif stringa_or_dict == Brawl:
-        return "Brawl"
-    elif stringa_or_dict == Historic:
-        return "Historic"
-    elif stringa_or_dict == Vintage:
-        return "Vintage"
-    elif stringa_or_dict == Cube:
-        return "Cube"
-    elif stringa_or_dict == Historic_Brawl:
-        return "Historic Brawl"
-    elif stringa_or_dict == Commander_1v1:
-        return "Commander 1v1"
-    elif stringa_or_dict == Commander:
-        return "Commander"
+    for string, dictionary in format_converter.items():
+        if dictionary == stringa_or_dict:
+            return string
+
+    raise ValueError("Format not found")
 
 
 def get_db(
@@ -332,12 +311,12 @@ def get_db(
 
 
 def price_collection(
-    price_dict: Dict[str, float], collec_dict: Dict[str, int]
+    price_dict: Dict[str, float], collection: Dict[str, int]
 ) -> Dict[str, Any]:
     """
-    Evaluate collec_dict with prices from price_dict.
+    Evaluate collection with prices from price_dict.
     :price_dict: dict of prices
-    :collec_dict: dict to analyze
+    :collection: dict to analyze
     :return:           {
                         "tot_copies": 6,
                         "different_cards": 2,
@@ -358,12 +337,12 @@ def price_collection(
     tot_copies = 0
     different_cards = 0
     tot_value = 0
-    for card in collec_dict.keys():
+    for card in collection.keys():
         if card in price_dict.keys():
-            tot_copies = tot_copies + collec_dict[card]
+            tot_copies = tot_copies + collection[card]
             different_cards += 1
             temp["name"] = card
-            temp["copies"] = collec_dict[card]
+            temp["copies"] = collection[card]
             temp["price"] = price_dict[card]
             temp["tot_price"] = round(temp["copies"] * temp["price"], 2)
             recognized.append(temp)
@@ -388,11 +367,11 @@ def price_collection(
 if __name__ == "__main__":  # test
     from prices_eur import prices_eur
 
-    collection = {"ancient stirrings": 4, "kroxa, titan of death's hunger": 4}
+    test_collection = {"ancient stirrings": 4, "kroxa, titan of death's hunger": 4}
     test = {"disdainful stroke": 3}
 
     deck = list(Standard.keys())[0]
-    formato = get_db(collection, get_format("Standard"), prices_eur)
+    formato = get_db(test_collection, get_format("Standard"), prices_eur)
     # dk = Deck('Hazoret Red', Historic_Brawl['Hazoret Red'], 'Historic_Brawl', Historic_Brawl, {}, prices_eur)
     import pdb
 
