@@ -5,7 +5,13 @@ def clean_input(stringa: str) -> str:
     """
     Clean input from userform at url.
     """
-    return stringa.lower().replace("  ", " ").replace("\t", " ").replace("\r", "").replace("’", "'")
+    return (
+        stringa.lower()
+        .replace("  ", " ")
+        .replace("\t", " ")
+        .replace("\r", "")
+        .replace("’", "'")
+    )
 
 
 def line_to_tuple(stringa: str) -> tuple:
@@ -58,7 +64,7 @@ def parse_collection(string: str, add_basics=True) -> dict:
                 collection[name] = collection.get(name, 0) + copies
                 if add_basics:
                     collection.update(BASIC_LANDS)
-            except (IndexError, ValueError):       # identify error
+            except (IndexError, ValueError):  # identify error
                 raise ValueError(f"This line is not in the right format:\n{line}")
     return collection
 
@@ -69,6 +75,7 @@ if __name__ == "__main__":
                     1x fireflux squad
                     1 fireflux squad (mtga) 333
                     fireflux squad 1""".splitlines()
+
     temp = tuple()
     for el in accepted_inputs:
         if len(temp) == 0:

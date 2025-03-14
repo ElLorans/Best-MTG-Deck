@@ -1,6 +1,7 @@
 """
 Urls and start of the website.
 """
+
 import json
 import os
 import random
@@ -33,7 +34,9 @@ def get_currency(wk_local_proxy) -> tuple[str, dict[str, float]]:
     param wk_local_proxy: class 'werkzeug.local.LocalProxy'
     :return: tuple (str, dict)
     """
-    if "dollars" not in wk_local_proxy.form:  # if tick box for USD is not checked by user
+    if (
+        "dollars" not in wk_local_proxy.form
+    ):  # if tick box for USD is not checked by user
         currency_html = "&euro;"  # € sign for html
         card_prices = prices_eur
     else:
@@ -45,7 +48,9 @@ def get_currency(wk_local_proxy) -> tuple[str, dict[str, float]]:
 app = Flask(__name__)  # initialize website
 
 # cryptography for cookie used as key of stored collections dict
-app.secret_key = os.getenv("SECRET KEY", b':\xafq\x87\xe0\x12\xbfU\xeeC\x9b\x17\xcfs\xaf)')
+app.secret_key = os.getenv(
+    "SECRET KEY", b":\xafq\x87\xe0\x12\xbfU\xeeC\x9b\x17\xcfs\xaf)"
+)
 
 
 @app.route("/")
@@ -80,34 +85,42 @@ def show_single_format(format_name, currency="€") -> str:
 
     else:  # elif request.method == "GET":
         # retrieve collection
-        if 'user_code' in session:
+        if "user_code" in session:
             try:
                 collection = collections[session["user_code"]]
             except KeyError:
-                print(f"Error on url /calc/{format_name}/{currency}: Lost collection of {session['user_code']}",
-                      file=sys.stderr)
+                print(
+                    f"Error on url /calc/{format_name}/{currency}: Lost collection of {session['user_code']}",
+                    file=sys.stderr,
+                )
                 return render_template("lostcollection.html")
         else:
             collection = BASIC_LANDS
 
     if currency == "€" or currency == "$":
         card_prices = {"€": prices_eur, "$": prices_usd}[currency]
-        return render_template("format.html",
-                               format_name=format_name,
-                               formato=get_db(collection, get_format(format_name), card_prices),
-                               currency=currency,
-                               prices=card_prices)
+        return render_template(
+            "format.html",
+            format_name=format_name,
+            formato=get_db(collection, get_format(format_name), card_prices),
+            currency=currency,
+            prices=card_prices,
+        )
     elif currency == "mtga":
-        return render_template("mtga_formats.html",
-                               format_name=format_name,
-                               formato=get_db(collection, get_format(format_name), prices_eur),
-                               currency=currency,
-                               prices=prices_eur)
+        return render_template(
+            "mtga_formats.html",
+            format_name=format_name,
+            formato=get_db(collection, get_format(format_name), prices_eur),
+            currency=currency,
+            prices=prices_eur,
+        )
     else:
         return render_template("wrongformat.html", error="The url you inserted")
 
 
-@app.route("/calc/<format_name>/<deck_name>/<currency>", strict_slashes=False, methods=["GET"])
+@app.route(
+    "/calc/<format_name>/<deck_name>/<currency>", strict_slashes=False, methods=["GET"]
+)
 def calc(format_name, deck_name, currency) -> str:
     """
     Page showing all cards of a particular deck.
@@ -119,15 +132,23 @@ def calc(format_name, deck_name, currency) -> str:
         try:
             collection = collections[session["user_code"]]
         except KeyError:
-            print(f"Error on url /calc/{format_name}/{currency}: Lost collection of {session['user_code']}",
-                  file=sys.stderr)
+            print(
+                f"Error on url /calc/{format_name}/{currency}: Lost collection of {session['user_code']}",
+                file=sys.stderr,
+            )
             return render_template("lostcollection.html")
     else:
         collection = BASIC_LANDS
 
     try:
-        dk = Deck(deck_name, get_format(format_name)[deck_name], format_name, get_format(format_name), collection,
-                  prices)
+        dk = Deck(
+            deck_name,
+            get_format(format_name)[deck_name],
+            format_name,
+            get_format(format_name),
+            collection,
+            prices,
+        )
         dk.detail()  # add info for each card
 
         return render_template("deck.html", deck=dk, title=deck_name, currency=currency)
@@ -135,14 +156,21 @@ def calc(format_name, deck_name, currency) -> str:
     except KeyError:
         # if user changes deck_name in url / cannot find deck
         # print(f"Error on url /calc/{format_name}/{deck_name}/{currency}: Missing Deck", file=sys.stderr)
-        return render_template("wrongformat.html",
-                               error=f"{format_name} does not contain {deck_name} or does not contain {deck_name} "
-                                     f"anymore. The requested URL was not found on the server.")
+        return render_template(
+            "wrongformat.html",
+            error=f"{format_name} does not contain {deck_name} or does not contain {deck_name} "
+            f"anymore. The requested URL was not found on the server.",
+        )
     except TypeError:
         # if user changes format_name in url / cannot find format_name (Type Error is raised by get_formato() )
-        print(f"Error on url /calc/{format_name}/{deck_name}/{currency}: {format_name} not found", file=sys.stderr)
-        return render_template("wrongformat.html",
-                               error=f"{format_name} does not exist. The requested URL was not found on the server.")
+        print(
+            f"Error on url /calc/{format_name}/{deck_name}/{currency}: {format_name} not found",
+            file=sys.stderr,
+        )
+        return render_template(
+            "wrongformat.html",
+            error=f"{format_name} does not exist. The requested URL was not found on the server.",
+        )
 
 
 @app.route("/value")
@@ -160,31 +188,50 @@ def evaluate() -> str:
         return render_template("wrongformat.html", error=mistake)
     currency_html, prices = get_currency(request)
 
-    return render_template("your_value.html", value=price_collection(prices, collection), currency=currency_html)
+    return render_template(
+        "your_value.html",
+        value=price_collection(prices, collection),
+        currency=currency_html,
+    )
+
 
 @app.route("/decklist_formatter", methods=["POST", "GET"])
 def page_decklist_formatter() -> str:
     if request.method == "GET":
         return render_template("bbcode_formatter.html", fieldset_data={})
-    from format_deck import analyse_cards_and_mistakes, group_by_mtg_type, dict_to_bbcode
-    cards_and_mistakes = analyse_cards_and_mistakes(clean_input(request.form["decklist"]).splitlines())
-    bbcode, html = dict_to_bbcode(group_by_mtg_type(cards_and_mistakes),
-                                  deck_name=request.form['deck_name'],
-                                  player_name=request.form['player_name'],
-                                  event_name=request.form['event_name'],
-                                  role=request.form["player_role"],
-                                  note=request.form['note_redazione'])
-    return render_template("bbcode_formatter.html",
-                           fieldset_data={
-                               **request.form, },
-                           bbcode=bbcode,
-                           parsed_output=cards_and_mistakes,
-                           )
+    from format_deck import (
+        analyse_cards_and_mistakes,
+        group_by_mtg_type,
+        dict_to_bbcode,
+    )
+
+    cards_and_mistakes = analyse_cards_and_mistakes(
+        clean_input(request.form["decklist"]).splitlines()
+    )
+
+    bbcode, html = dict_to_bbcode(
+        group_by_mtg_type(cards_and_mistakes),
+        deck_name=request.form["deck_name"],
+        player_name=request.form["player_name"],
+        event_name=request.form["event_name"],
+        role=request.form["player_role"],
+        note=request.form["note_redazione"],
+    )
+    return render_template(
+        "bbcode_formatter.html",
+        fieldset_data={
+            **request.form,
+        },
+        bbcode=bbcode,
+        parsed_output=cards_and_mistakes,
+    )
 
 
 @app.errorhandler(404)
 def page_not_found(e) -> str:
-    return render_template("wrongformat.html", error="The requested URL was not found on the server and")
+    return render_template(
+        "wrongformat.html", error="The requested URL was not found on the server and"
+    )
 
 
 @app.route("/api/tooltip.js")
