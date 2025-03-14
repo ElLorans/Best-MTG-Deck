@@ -1,9 +1,11 @@
 {% extends "layout.html" %}
+{% block extra_head %}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+{% endblock extra_head %}
 {% block content %}
     <body>
 
     <div class="container theme-showcase" role="main">
-
         <div class="jumbotron">
             <h1>Best MTG Deck For You</h1>
             <a type="button" class="btn btn-link" href="{{ url_for('sign') }}">Submit Your Collection</a>
@@ -13,46 +15,44 @@
         <div class="page-header">
         </div>
         <div class="well">
-            <p>What MTG deck should you buy given the cards and the
-                decks already in your collection?
-                <br>
-                Click on
-                <a type="button" class="btn btn-link" href="{{ url_for('sign') }}">Submit Your Collection</a>
-                and paste the list of your cards to see how much you should spend to build MTG competitive Decks.
-                <br>
-                Mkm price trends are used for € prices, TCG Market prices are used for USD prices.
+            <p>
+                <strong><i class="fas fa-magic"></i> Find the Best MTG Deck for You!</strong><br>
+                Wondering which deck to buy based on your collection?
+                Click on <a class="btn btn-link" href="{{ url_for('sign') }}"><i class="fas fa-upload"></i> Submit
+                Your Collection</a>, paste your card list, and see how much it costs to build a competitive MTG
+                deck.
+            </p>
+            <p>
+                <i class="fas fa-tags"></i> Prices are based on <strong>Mkm price trends</strong> (€) and <strong>TCG
+                Market prices</strong> (USD).
             </p>
         </div>
 
         <div class="well">
-            <p><b>Export MTGA Collection:</b>
-                <br>
-                {#<i>Log into Arena and go to "Adjust Options"; click on "View Account"; check the “Detailed Logs
-                    (Plugin Support)” button and restart the game.</i>
-                <br>
-                <a type="button" class="btn btn-link" href="{{ url_for('download_file') }}">Click here</a>to download
-                Orens MTGA-EasyExporterV1.3 <b>FOR Forgotten Realms</b>. </p>
-            <p>Open your Downloads folder and run OrensMTGA-EasyExporterV1.2.exe. If you receive a warning message,
-                click "More info" and then "Run anyway". Do not copy anything while the program is running.
-                A black tab will open and show you the progress. After one minute, it will finish and create a new file
-                named "MTGAcollection.txt".
-                Now, click on <a type="button" class="btn btn-link" href="{{ url_for('sign') }}">Submit Your
-                    Collection</a> and paste.</p>#}
-                MTGA Logs do not support collection extraction anymore. Please upvote <a
-                        target="_blank" href="https://feedback.wizards.com/forums/918667-mtg-arena-bugs-product-suggestions/suggestions/44050746-broken-logs-in-2021-8-0-3855">this
-                    link on MTGA official forum</a> so that WOTC will address this issue.
-
-        </div>
-        <div class="well">
-            <p>Follow us on <a href="https://www.reddit.com/r/BestMtgDeckForYou/">Reddit</a>!</p>
-            <p>Have any feedback, suggestions or requests? Want to add another deck list? Send an email to
-                bestdeckforyou@gmail.com</p>
-            <p>Would you like to contribute? See how Best MTG Deck works? The source code is available at
-                <a href="https://github.com/ElLorans/Best-MTG-Deck">https://github.com/ElLorans/Best-MTG-Deck</a>
+            <p><strong><i class="fas fa-exclamation-triangle"></i> Exporting Your MTGA Collection:</strong></p>
+            <p>
+                MTGA Logs no longer support collection extraction. Help bring this feature back by upvoting
+                <a target="_blank"
+                   href="https://feedback.wizards.com/forums/918667-mtg-arena-bugs-product-suggestions/suggestions/44050746-broken-logs-in-2021-8-0-3855">
+                    <i class="fas fa-thumbs-up"></i> this post on the MTGA official forum</a>.
             </p>
         </div>
 
+        <div class="well">
+            <p><strong><i class="fas fa-users"></i> Stay Connected:</strong></p>
+            <p>
+                <a href="https://www.reddit.com/r/BestMtgDeckForYou/"><i class="fab fa-reddit"></i> Join the
+                    discussion on Reddit</a>!
+            </p>
+            <p>
+                <i class="fas fa-envelope"></i> Have feedback, suggestions, or deck list requests? Contact us at
+                <a href="mailto:bestdeckforyou@gmail.com">bestdeckforyou@gmail.com</a>.
+            </p>
+            <p>
+                <i class="fas fa-code"></i> Want to contribute or check out how Best MTG Deck works? The source code
+                is available on
+                <a href="https://github.com/ElLorans/Best-MTG-Deck"><i class="fab fa-github"></i> GitHub</a>.
+            </p>
+        </div>
     </div>
-
-    </body>
 {% endblock content %}
