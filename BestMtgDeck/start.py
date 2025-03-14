@@ -9,11 +9,11 @@ import sys
 
 from flask import Flask, render_template, request, session, send_file
 
-from BestMtgDeck.forms import DeckFormatter
-from bestdeck import Deck, get_db, get_format, price_collection
+from forms import DeckFormatter
+from BestMtgDeck.bestdeck import Deck, get_db, get_format, price_collection
 from mtg_parser import BASIC_LANDS, clean_input, parse_collection
-from prices_eur import prices_eur
-from prices_usd import prices_usd
+from BestMtgDeck.prices_eur import prices_eur
+from BestMtgDeck.prices_usd import prices_usd
 
 
 def load_collections() -> dict:

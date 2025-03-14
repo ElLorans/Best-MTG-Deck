@@ -6,7 +6,7 @@ from typing import List, Union, Any, Dict
 
 from flask import current_app
 
-from database import (
+from .database import (
     Standard,
     Brawl,
     Historic,
@@ -30,7 +30,7 @@ from database import (
     Timeless,
     Timeless_Sideboards,
 )
-from rarity import rarity
+from .rarity import rarity
 
 
 BASIC_LANDS = ("Forest", "Swamp", "Mountain", "Plains", "Island")

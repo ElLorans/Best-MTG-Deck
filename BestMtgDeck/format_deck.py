@@ -5,9 +5,9 @@ Pipeline:
 analyse_cards_and_mistakes -> group_by_mtg_type -> dict_to_bbcode
 """
 
-from card_types import card_types
+from BestMtgDeck.BestMtgDeck.card_types import card_types
 from mtg_parser import line_to_tuple
-from translations import translations
+from BestMtgDeck.BestMtgDeck.translations import translations
 
 
 def capitalize_word(words: str) -> str:
