@@ -9,3 +9,4 @@ venv/
 
 # User data
 collections.json
+/*.env

@@ -1,0 +1,18 @@
+{% if config.PAYPAL_LINK %}
+    <a href="{{ config.PAYPAL_LINK }}" target="_blank">
+        <div class="well d-flex flex-wrap">
+            <div class="flex-grow p-3" style="flex-grow: 1;">
+                <p class="d-flex align-items-center">
+                    <i class="fas fa-coffee mr-2"></i> <strong>Support the Project!</strong>
+                </p>
+                <p class="mb-2 mb-md-0">Enjoying this tool? Help keep it running by buying me a coffee!</p>
+            </div>
+            <div class="flex-grow p-3" style="flex-grow: 1;">
+                <p class="mb-0">
+                    <img src="https://www.paypalobjects.com/webstatic/en_US/i/buttons/PP_logo_h_150x38.png"
+                         alt="PayPal Donate" width="150">
+                </p>
+            </div>
+        </div>
+    </a>
+{% endif %}

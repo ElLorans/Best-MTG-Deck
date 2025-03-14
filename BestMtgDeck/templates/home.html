@@ -1,7 +1,4 @@
 {% extends "layout.html" %}
-{% block extra_head %}
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-{% endblock extra_head %}
 {% block content %}
     <body>
 
@@ -45,7 +42,7 @@
                     discussion on Reddit</a>!
             </p>
             <p>
-                <i class="fas fa-envelope"></i> Have feedback, suggestions, or deck list requests? Contact us at
+                <i class="fas fa-envelope"></i> Have feedback, suggestions, or deck list requests? Contact me at
                 <a href="mailto:bestdeckforyou@gmail.com">bestdeckforyou@gmail.com</a>.
             </p>
             <p>
@@ -54,5 +51,6 @@
                 <a href="https://github.com/ElLorans/Best-MTG-Deck"><i class="fab fa-github"></i> GitHub</a>.
             </p>
         </div>
+        {% include 'buy_me_a_coffee.html' %}
     </div>
 {% endblock content %}
