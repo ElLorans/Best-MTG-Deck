@@ -16,11 +16,11 @@ def capitalize_word(words: str) -> str:
     :param words: "lIlIANA oF tHe VeIL"
     :return: "Liliana of the Veil"
     """
-    exceptions = ["and", "or", "the", "a", "of", "in"]
     words = words.split(" ")
     final_words = [words[0].capitalize()]
     final_words += [
-        word if word in exceptions else word.capitalize() for word in words[1:]
+        word if word in {"and", "or", "the", "a", "of", "in"} else word.capitalize()
+        for word in words[1:]
     ]
     final_title = " ".join(final_words)
     return final_title
