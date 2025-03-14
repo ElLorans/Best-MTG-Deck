@@ -9,6 +9,7 @@ import sys
 
 from flask import Flask, render_template, request, session, send_file
 
+from BestMtgDeck.forms import DeckFormatter
 from bestdeck import Deck, get_db, get_format, price_collection
 from mtg_parser import BASIC_LANDS, clean_input, parse_collection
 from prices_eur import prices_eur
@@ -198,7 +199,8 @@ def evaluate() -> str:
 @app.route("/decklist_formatter", methods=["POST", "GET"])
 def page_decklist_formatter() -> str:
     if request.method == "GET":
-        return render_template("bbcode_formatter.html", fieldset_data={})
+        return render_template("bbcode_formatter.html", form=DeckFormatter)
+
     from format_deck import (
         analyse_cards_and_mistakes,
         group_by_mtg_type,
@@ -217,13 +219,14 @@ def page_decklist_formatter() -> str:
         role=request.form["player_role"],
         note=request.form["note_redazione"],
     )
+
+    form = DeckFormatter(request.form)
     return render_template(
         "bbcode_formatter.html",
-        fieldset_data={
-            **request.form,
-        },
+        decklist=request.form["decklist"],
         bbcode=bbcode,
         parsed_output=cards_and_mistakes,
+        form=form,
     )
 
 

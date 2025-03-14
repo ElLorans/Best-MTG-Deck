@@ -11,81 +11,82 @@
             })
         }
     </script>
+    <style>
+        .flex-item {
+            flex: 1 1 300px;
+        }
 
-    <div class="container d-flex justify-content-center align-items-center vh-100 flex-wrap">
-        <form method="POST" class="w-75 p-4 border rounded bg-light shadow">
-            <div class="form-row">
-                <fieldset class="col-12 col-md-4 mb-3 border rounded">
-                    <legend class="w-auto" href="/">
-                        <a href="/">Deck Formatter</a>
-                    </legend>
-                    {% set form_fields = [
-                                        'Deck Name',
-                                        'Player Name',
-                                        'Event Name',
-                                        'Player Role',
-                                        'Note Redazione'
-                                        ] %}
+        @media (min-width: 768px) {
+            .btn {
+                margin: 0 15%;
+            }
+        }
+    </style>
 
-                    {% for label in form_fields %}
-                        {% set field_id = label|lower|replace(' ', '_') %}
-                        <div class="form-group">
-                            <label for="{{ field_id }}">{{ label }}:</label>
-                            <input type="text" id="{{ field_id }}" name="{{ field_id }}" class="form-control"
-                                   value="{{ fieldset_data[field_id] }}">
-                        </div>
-                    {% endfor %}
-                </fieldset>
+    <form method="POST" class="border rounded bg-light shadow pb-4">
+        <h2 class="px-3">
+            <a href="{{ url_for('page_decklist_formatter') }}">
+                Deck Formatter
+            </a>
+        </h2>
 
-                <div class="col-12 col-md-4 mb-3">
+        <div class="d-flex flex-wrap p-4">
+            <fieldset class="border p-3 flex-item p-3">
+                <legend class="px-2">Deck Info</legend>
+                {% for field in form if field.widget.input_type != 'hidden' %}
                     <div class="form-group">
-                        <label for="decklist">Decklist:</label>
-                        <textarea id="decklist" name="decklist" class="form-control" rows="8">
-                            {{- fieldset_data.decklist -}}
-                        </textarea>
+                        {{ field.label }}
+                        <!-- Height auto or select too short in Boostrap4 -->
+                        {{ field(class='form-control', style='height: auto;') }}
                     </div>
-                    <button type="button" class="btn btn-warning btn-block"
+                {% endfor %}
+            </fieldset>
+
+            <div class="flex-item p-3">
+                <label for="decklist">Decklist:</label>
+                <textarea id="decklist" name="decklist" class="form-control" rows="8">
+                    {{- decklist -}}
+                </textarea>
+                <div class="d-flex justify-content-center">
+                    <button type="button" class="btn btn-warning btn-block mt-3"
                             onclick="document.getElementById('decklist').value = ''">
                         Clear Deck
                     </button>
                 </div>
-                {% if parsed_output %}
-
-                    <div class="col-12 col-md-4 mb-3">
-                        <p class="font-weight-bold mb-1">Parsed Output:</p>
-                        <div class="border form-control"
-                             style="height: auto; min-height: 12.5em; overflow-y: auto;">
-                            {% for dictionary in parsed_output %}
-                                {% if dictionary["is_correct"] %}
-                                    <p class="mb-0">
-                                        {{- dictionary["line"] -}}
-                                    </p>
-                                {% else %}
-                                    <p class="mb-0 text-danger">
-                                        {{- dictionary["line"] -}}
-                                    </p>
-                                {% endif %}
-                            {% endfor %}
-                        </div>
-                    </div>
-                {% endif %}
             </div>
-
-            <button type="submit" class="btn btn-primary btn-block mt-3">
+            {% if parsed_output %}
+                <div class="flex-item p-3">
+                    <label>Parsed Input</label>
+                    <div class="border form-control"
+                         style="height: auto; min-height: 12.5em; overflow-y: auto;">
+                        {% for dictionary in parsed_output %}
+                            <p class="mb-0 {% if not dictionary["is_correct"] %} text-danger {% endif %}">
+                                {{- dictionary["line"] -}}
+                            </p>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+        <div class="d-flex justify-content-center p-4">
+            <button type="submit" class="btn btn-primary btn-block">
                 Translate & Format
             </button>
-        </form>
-
-        {% if bbcode %}
-            <div class="w-75 p-4 border rounded bg-light shadow mt-3">
-                <div class="form-group">
-                    <label for="bbcode_deck">BBCode Deck:</label>
-                    <textarea id="bbcode_deck" name="bbcode_deck" class="form-control" rows="8">{{ bbcode }}</textarea>
-                </div>
+        </div>
+    </form>
+    {% if bbcode %}
+        <div class="p-4 border rounded bg-light shadow mt-3">
+            <div class="form-group">
+                <label for="bbcode_deck">BBCode Deck:</label>
+                <textarea id="bbcode_deck" name="bbcode_deck" class="form-control" rows="8">
+                        {{- bbcode -}}
+                    </textarea>
+            </div>
+            <div class="d-flex justify-content-center">
                 <button type="button" class="btn btn-success btn-block" onclick="copyBBDeck()">
                     Copy BBCode
                 </button>
             </div>
-        {% endif %}
-    </div>
+        </div>
+    {% endif %}
 {% endblock %}
