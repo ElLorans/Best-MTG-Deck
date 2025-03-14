@@ -52,6 +52,7 @@ app = Flask(__name__)  # initialize website
 app.secret_key = os.getenv(
     "SECRET KEY", b":\xafq\x87\xe0\x12\xbfU\xeeC\x9b\x17\xcfs\xaf)"
 )
+app.config["PAYPAL_LINK"] = os.getenv("PAYPAL_LINK", None)
 
 
 @app.route("/")
@@ -199,7 +200,7 @@ def evaluate() -> str:
 @app.route("/decklist_formatter", methods=["POST", "GET"])
 def page_decklist_formatter() -> str:
     if request.method == "GET":
-        return render_template("bbcode_formatter.html", form=DeckFormatter)
+        return render_template("bbcode_formatter.html", form=DeckFormatter())
 
     from format_deck import (
         analyse_cards_and_mistakes,
