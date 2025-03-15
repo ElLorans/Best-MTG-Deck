@@ -6,7 +6,7 @@ analyse_cards_and_mistakes -> group_by_mtg_type -> dict_to_bbcode
 """
 
 from BestMtgDeck.BestMtgDeck.card_types import card_types
-from mtg_parser import line_to_tuple
+from BestMtgDeck.mtg_parser import line_to_tuple
 from BestMtgDeck.BestMtgDeck.translations import translations
 
 

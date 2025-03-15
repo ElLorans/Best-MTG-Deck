@@ -9,11 +9,11 @@ import sys
 
 from flask import Flask, render_template, request, session, send_file
 
-from forms import DeckFormatter
-from BestMtgDeck.bestdeck import Deck, get_db, get_format, price_collection
-from mtg_parser import BASIC_LANDS, clean_input, parse_collection
-from BestMtgDeck.prices_eur import prices_eur
-from BestMtgDeck.prices_usd import prices_usd
+from BestMtgDeck.forms import DeckFormatter
+from BestMtgDeck.BestMtgDeck.bestdeck import Deck, get_db, get_format, price_collection
+from BestMtgDeck.mtg_parser import BASIC_LANDS, clean_input, parse_collection
+from BestMtgDeck.BestMtgDeck.prices_eur import prices_eur
+from BestMtgDeck.BestMtgDeck.prices_usd import prices_usd
 
 
 def load_collections() -> dict:
@@ -202,7 +202,7 @@ def page_decklist_formatter() -> str:
     if request.method == "GET":
         return render_template("bbcode_formatter.html", form=DeckFormatter())
 
-    from format_deck import (
+    from BestMtgDeck.format_deck import (
         analyse_cards_and_mistakes,
         group_by_mtg_type,
         dict_to_bbcode,
