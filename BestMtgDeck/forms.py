@@ -11,9 +11,9 @@ class DeckFormatter(FlaskForm):
         choices=[
             ("Winner", "Winner"),
             ("Finalist", "Finalist"),
-            ("Top4", "Top4"),
-            ("Top8", "Top8"),
-            ("Top16", "Top16"),
+            ("Top 4", "Top 4"),
+            ("Top 8", "Top 8"),
+            ("Top 16", "Top 16"),
         ],
     )
     note_redazione = StringField("Note Redazione")
