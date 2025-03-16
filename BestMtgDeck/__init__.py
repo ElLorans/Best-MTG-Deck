@@ -1,6 +1,6 @@
 # imports needed for tests
 
-from BestMtgDeck import format_deck, forms, mtg_parser, start
+from BestMtgDeck import forms, start
 from BestMtgDeck.BestMtgDeck import (
     bestdeck,
     card_types,
@@ -9,4 +9,6 @@ from BestMtgDeck.BestMtgDeck import (
     prices_usd,
     rarity,
     translations,
+    mtg_parser,
+    format_deck,
 )

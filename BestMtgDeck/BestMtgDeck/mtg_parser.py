@@ -72,9 +72,9 @@ def parse_collection(string: str, add_basics=True) -> dict:
 if __name__ == "__main__":
     accepted_inputs = """1 fireflux squad
 1  fireflux squad
-                    1x fireflux squad
-                    1 fireflux squad (mtga) 333
-                    fireflux squad 1""".splitlines()
+1x fireflux squad
+1 fireflux squad (mtga) 333
+fireflux squad 1""".splitlines()
 
     temp = tuple()
     for el in accepted_inputs:

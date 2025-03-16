@@ -5,11 +5,48 @@ Pipeline:
 analyse_cards_and_mistakes -> group_by_mtg_type -> dict_to_bbcode
 """
 
-from typing import Any, Iterable
+from dataclasses import dataclass
 
 from BestMtgDeck.BestMtgDeck.card_types import card_types
-from BestMtgDeck.mtg_parser import line_to_tuple
 from BestMtgDeck.BestMtgDeck.translations import translations
+from BestMtgDeck.BestMtgDeck.mtg_parser import line_to_tuple, clean_input
+
+
+def get_plural(stringa: str) -> str:
+    """
+    Return plural of stringa.
+    """
+    if stringa[-1] == "s":
+        return stringa
+    if stringa[-1] == "y":
+        return stringa[:-1] + "ies"
+    return stringa + "s"
+
+
+ORDERED_MTG_TYPES: tuple[str, ...] = (
+    "creature",
+    "sorcery",
+    "instant",
+    "enchantment",
+    "planeswalker",
+    "battle",
+    "artifact",
+    "conspiracy",
+    "dungeon",
+    "phenomenon",
+    "plane",
+    "scheme",
+    "vanguard",
+    "other",
+    "land",
+)
+
+ORDERED_MTG_PLURAL_TYPES = tuple(get_plural(t) for t in ORDERED_MTG_TYPES)
+FROZENSET_MTG_PLURAL_TYPES = frozenset(ORDERED_MTG_PLURAL_TYPES)
+CAPITALIZED_ORDERED_MTG_PLURAL_TYPES = tuple(
+    get_plural(t).capitalize() for t in ORDERED_MTG_TYPES
+)
+PRETTY_TYPES = dict(zip(ORDERED_MTG_TYPES, CAPITALIZED_ORDERED_MTG_PLURAL_TYPES))
 
 
 def capitalize_word(words: str) -> str:
@@ -28,10 +65,10 @@ def capitalize_word(words: str) -> str:
     return final_title
 
 
-def split_bb(ordered_types: dict[Any, Iterable]) -> int:
+def split_bb(ordered_types: dict[str, list[str]]) -> int:
     """
     Get index at which you need to split columns on bbcode/html.
-    :param ordered_types: Dict[int, Dict[str, int]]
+    :param ordered_types: dict[name, list[lines]]
     """
     total_lines = 0
     lengths = list()
@@ -47,127 +84,93 @@ def split_bb(ordered_types: dict[Any, Iterable]) -> int:
             return index
 
 
-def analyse_cards_and_mistakes(list_str: list) -> list:
+@dataclass(frozen=True)
+class Line:
+    line: str
+    is_correct: bool
+    card: str
+    copies: int
+
+
+def analyse_cards_and_mistakes(list_str: list[str]) -> list[Line]:
     """
-    Return list of tuples (line, bool) for each line in lista. Bool is True if line is correct, False otherwise.
-    :param list_str: list[str]
-    :return: List[tuple[str, bool]]
+    Return list of Line for each str in lista. Line.is_correct is True if line is valid, False otherwise.
     """
     result = list()
     for original_line in list_str:
         line = original_line.strip()
-        if len(line) > 2:
+        if len(line) < 2:
+            result.append(Line(line=line, is_correct=False, card=line, copies=0))
+        else:
             try:
                 card, num_copies = line_to_tuple(line)
-                if card in card_types:
-                    result.append(
-                        {
-                            "line": f"{num_copies} {card}",
-                            "is_correct": True,
-                            "card": card,
-                            "copies": num_copies,
-                        }
-                    )
-                else:
-                    try:  # If I can translate, I suppose I have type
-                        card = translations[card]
-                        result.append(
-                            {
-                                "line": f"{num_copies} {card}",
-                                "is_correct": True,
-                                "card": card,
-                                "copies": num_copies,
-                            }
-                        )
-                    except KeyError:
-                        result.append(
-                            {
-                                "line": f"{num_copies} {card}",
-                                "is_correct": False,
-                                "card": card,
-                                "copies": 0,
-                            }
-                        )
-            except (IndexError, ValueError):
+                card = translations.get(card, card)  # try to translate
                 result.append(
-                    {"line": line, "is_correct": False, "card": line, "copies": 0}
+                    Line(
+                        line=f"{num_copies} {card}",
+                        is_correct=card in card_types,
+                        card=card if card in card_types else line,
+                        copies=num_copies if card in card_types else 0,
+                    )
                 )
-        else:
-            result.append(
-                {"line": line, "is_correct": False, "card": line, "copies": 0}
-            )
+            except (IndexError, ValueError):
+                result.append(Line(line=line, is_correct=False, card=line, copies=0))
     return result
 
 
-def group_by_mtg_type(list_dict: list) -> dict:
+def group_by_mtg_type(list_lines: list[Line]) -> dict[str, list[int, str]]:
     """
-    Return dict with lists of 2 elems: # copies and lines.
-    :param list_dict: List[Dict[str, Any]]
-    :return: Dict[str, List[int, str]]
+    Return dict with lists of 2 elems: # cards and lines.
     """
     cards_by_types = dict()
     sideboard = False
-    for dictionary in list_dict:
-        if dictionary["line"].startswith("sideboard"):
+    for line in list_lines:
+        if line.line.startswith("sideboard"):
             sideboard = True
-            cards_by_types["Sideboard"] = [0, list()]
+            cards_by_types["Sideboard"] = [0, []]
         elif sideboard:
-            if dictionary["is_correct"]:
-                cards_by_types["Sideboard"][0] += dictionary["copies"]
-                cards_by_types["Sideboard"][1].append(dictionary["line"])
+            if line.is_correct:
+                cards_by_types["Sideboard"][0] += line.copies
+                cards_by_types["Sideboard"][1].append(line.line)
         else:
-            if dictionary["is_correct"]:
-                card_type = get_type(dictionary["card"])
+            if line.is_correct:
+                card_type = get_type(line.card)
                 if card_type in cards_by_types:
-                    cards_by_types[card_type][0] += dictionary["copies"]
-                    cards_by_types[card_type][1].append(dictionary["line"])
+                    cards_by_types[card_type][0] += line.copies
+                    cards_by_types[card_type][1].append(line.line)
                 else:
                     cards_by_types[card_type] = [
-                        dictionary["copies"],
-                        [dictionary["line"]],
+                        line.copies,
+                        [line.line],
                     ]
-
+    # sort by number of copies (descending), then alphabetically by card name
     for mtg_type, (total_copies, lines) in cards_by_types.items():
-        lines.sort(reverse=True)  # for each mtg type, sort by num of copies
+        lines.sort(key=lambda x: (-line_to_tuple(x)[1], line_to_tuple(x)[0]))
     return cards_by_types
 
 
 def dict_to_bbcode(
-    card_types: dict,
+    mtg_card_types: dict,
     deck_name: str,
     player_name: str,
     event_name: str,
     role: str,
-    note: str,
-) -> tuple:
-    # when reach half of types
-    # half_index = int(-(-len(card_types.items()) // 2)) - 1
-
+    note_redazione: str,
+) -> tuple[str, str]:
     # sort card_types
-    ordered_types = (
-        "Creatures",
-        "Sorceries",
-        "Instants",
-        "Enchantments",
-        "Planeswalkers",
-        "Artifacts",
-        "Others",
-        "Lands",
-    )
     ordered_card_types = {
-        mtg_type: card_types[mtg_type]
-        for mtg_type in ordered_types
-        if mtg_type in card_types
+        mtg_type: mtg_card_types[mtg_type]
+        for mtg_type in ORDERED_MTG_PLURAL_TYPES
+        if mtg_type in mtg_card_types
     }
     # get weird remaining types
-    ordered_card_types.update(card_types)
+    ordered_card_types.update(mtg_card_types)
     ordered_card_types.pop("Sideboard", None)  # do not consider sideboard for splitting
     split_index = split_bb(ordered_card_types)
     try:
-        # ordered_card_types["Sideboard"] = card_types["Sideboard"]
-        sideboard_recap = f"Sideboard: {card_types['Sideboard'][0]}"
-        sideboard_lines = f"Sideboard ({card_types['Sideboard'][0]}):\n"
-        for line in card_types["Sideboard"][1]:
+        sideboard_recap = f"Sideboard: {mtg_card_types['Sideboard'][0]}"
+        sideboard_lines = f"Sideboard ({mtg_card_types['Sideboard'][0]}):\n"
+        for line in mtg_card_types["Sideboard"][1]:
             card, copies = line_to_tuple(line)
             sideboard_lines += f"{copies} [card]{capitalize_word(card)}[/card]\n"
     except KeyError:
@@ -195,7 +198,7 @@ def dict_to_bbcode(
 [/td][/tr]
 {"" if event_name == "" else f"[tr][td3]{event_name}[/td3][/tr]"}
 [tr][td2][i]ndr.[/i]
-{'-' if note == "" else note}[/td2]
+{'-' if note_redazione == "" else note_redazione}[/td2]
 [td]Details
 Main Deck: {tot_main}
 {sideboard_recap}
@@ -269,22 +272,12 @@ Main Deck: {tot_main}
 
 def is_mtg_type(stringa: str) -> bool:
     """
-    Return True if stringa (int str) is a mtg type, False otherwise.
+    Return True if stringa (int str) is a mtg type or sideboard, False otherwise.
     :param stringa: f"{integer} {stringa}"
     """
-    types = frozenset(
-        (
-            "lands",
-            "creatures",
-            "instants",
-            "artifacts",
-            "enchantments",
-            "other",
-            "sideboard",
-        )
-    )
     try:
-        if stringa.split(" ", 1)[1] in types:
+        strin = stringa.split(" ", 1)[1]
+        if strin in FROZENSET_MTG_PLURAL_TYPES or strin == "sideboard":
             return True
     except IndexError:  # e.g.: Sideboard
         return False
@@ -303,47 +296,15 @@ def remove_mtg_types(list_str: list) -> list:
 def get_type(card: str) -> str:
     """
     Return simplified type of MTG card.
-    :param card: MUST BE lowercase
-    :return: str
     """
     card_type = card_types.get(card, "other").lower()
-    pretty_types = {
-        "land": "Lands",
-        "summon": "Creatures",
-        "creature": "Creatures",
-        "planeswalker": "Planeswalkers",
-        "enchantment": "Enchantments",
-        "artifact": "Artifacts",
-        "sorcery": "Sorceries",
-        "instant": "Instants",
-    }
-    if card_type in pretty_types:
-        return pretty_types[card_type]
-
-    if "land" in card_type:
-        return "Lands"
-    if "summon" in card_type or "creature" in card_type:
-        return "Creatures"
-    if "planeswalker" in card_type:
-        return "Planeswalkers"
-    if "enchantment" in card_type:
-        return "Enchantments"
-    if "artifact" in card_type:
-        return "Artifacts"
-    if "sorcery" in card_type:
-        return "Sorceries"
-    if "instant" in card_type:
-        return "Instants"
-    if "conspiracy" in card_type:
-        return "Conspiracies"
-    if "phenomenon" in card_type:
-        return "Phenomenons"
-    if "plane" in card_type:
-        return "Planes"
-    if "scheme" in card_type:
-        return "Schemes"
+    if card_type in PRETTY_TYPES:
+        return PRETTY_TYPES[card_type]
     else:
-        return "Others"
+        for key in PRETTY_TYPES:
+            if key in card_type:
+                return PRETTY_TYPES[key]
+    return "Others"
 
 
 def count_cards_list(cards_list: list, parse_str=True) -> tuple:
@@ -369,3 +330,26 @@ def count_cards_list(cards_list: list, parse_str=True) -> tuple:
     if parse_str:
         return count, cleaned_cards_str
     return count, None
+
+
+def format_deck(
+    multiline_string: str,
+    deck_name: str,
+    player_name: str,
+    event_name: str,
+    role: str,
+    note_redazione: str,
+) -> tuple[str, str, list[Line]]:
+
+    cards_and_mistakes: list[Line] = analyse_cards_and_mistakes(
+        clean_input(multiline_string).splitlines()
+    )
+    bbcode, html = dict_to_bbcode(
+        group_by_mtg_type(cards_and_mistakes),
+        deck_name=deck_name,
+        player_name=player_name,
+        event_name=event_name,
+        role=role,
+        note_redazione=note_redazione,
+    )
+    return bbcode, html, cards_and_mistakes

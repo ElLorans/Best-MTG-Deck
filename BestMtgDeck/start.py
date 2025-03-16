@@ -7,13 +7,17 @@ import os
 import random
 import sys
 
-from flask import Flask, render_template, request, session, send_file
+from flask import Flask, render_template, request, session, redirect
 
-from BestMtgDeck.forms import DeckFormatterForm
 from BestMtgDeck.BestMtgDeck.bestdeck import Deck, get_db, get_format, price_collection
-from BestMtgDeck.mtg_parser import BASIC_LANDS, clean_input, parse_collection
+from BestMtgDeck.BestMtgDeck.format_deck import format_deck
+from BestMtgDeck.BestMtgDeck.mtg_parser import (
+    BASIC_LANDS,
+    parse_collection,
+)
 from BestMtgDeck.BestMtgDeck.prices_eur import prices_eur
 from BestMtgDeck.BestMtgDeck.prices_usd import prices_usd
+from BestMtgDeck.forms import DeckFormatterForm
 
 
 def load_collections() -> dict:
@@ -201,24 +205,13 @@ def evaluate() -> str:
 def page_decklist_formatter() -> str:
     if request.method == "GET":
         return render_template("bbcode_formatter.html", form=DeckFormatterForm())
-
-    from BestMtgDeck.format_deck import (
-        analyse_cards_and_mistakes,
-        group_by_mtg_type,
-        dict_to_bbcode,
-    )
-
-    cards_and_mistakes = analyse_cards_and_mistakes(
-        clean_input(request.form["decklist"]).splitlines()
-    )
-
-    bbcode, html = dict_to_bbcode(
-        group_by_mtg_type(cards_and_mistakes),
+    bbcode, html, cards_and_mistakes = format_deck(
+        request.form["decklist"],
         deck_name=request.form["deck_name"],
         player_name=request.form["player_name"],
         event_name=request.form["event_name"],
         role=request.form["player_role"],
-        note=request.form["note_redazione"],
+        note_redazione=request.form["note_redazione"],
     )
 
     form = DeckFormatterForm(request.form)
@@ -240,12 +233,7 @@ def page_not_found(e) -> str:
 
 @app.route("/api/tooltip.js")
 def tooltip():
-    return send_file("static/js/tooltip.js")
-
-
-@app.route("/api/tooltip.css")
-def css_tooltip():
-    return send_file("static/css/tooltip.css")
+    return redirect("static/js/tooltip.js")
 
 
 if __name__ == "__main__":
