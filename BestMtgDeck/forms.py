@@ -2,7 +2,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, SelectField
 
 
-class DeckFormatter(FlaskForm):
+class DeckFormatterForm(FlaskForm):
     deck_name = StringField("Deck Name")
     player_name = StringField("Player Name")
     event_name = StringField("Event Name")
