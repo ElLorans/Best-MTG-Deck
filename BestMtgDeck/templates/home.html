@@ -5,9 +5,9 @@
     <div class="container theme-showcase" role="main">
         <div class="jumbotron">
             <h1>Best MTG Deck For You</h1>
-            <a type="button" class="btn btn-link" href="{{ url_for('sign') }}">Submit Your Collection</a>
-            <a type="button" class="btn btn-link" href="{{ url_for('values') }}">Evaluate Your Collection</a>
-            <a type="button" class="btn btn-link" href="{{ url_for('page_decklist_formatter') }}">Decklist Formatter</a>
+            <a type="button" class="btn btn-link" href="{{ url_for('main.sign') }}">Submit Your Collection</a>
+            <a type="button" class="btn btn-link" href="{{ url_for('main.values') }}">Evaluate Your Collection</a>
+            <a type="button" class="btn btn-link" href="{{ url_for('main.page_decklist_formatter') }}">Decklist Formatter</a>
         </div>
         <div class="page-header">
         </div>
@@ -15,7 +15,7 @@
             <p>
                 <strong><i class="fas fa-magic"></i> Find the Best MTG Deck for You!</strong><br>
                 Wondering which deck to buy based on your collection?
-                Click on <a class="btn btn-link" href="{{ url_for('sign') }}"><i class="fas fa-upload"></i> Submit
+                Click on <a class="btn btn-link" href="{{ url_for('main.sign') }}"><i class="fas fa-upload"></i> Submit
                 Your Collection</a>, paste your card list, and see how much it costs to build a competitive MTG
                 deck.
             </p>
