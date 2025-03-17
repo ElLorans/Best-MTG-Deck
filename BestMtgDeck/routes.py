@@ -4,7 +4,13 @@ import sys
 
 from flask import render_template, request, session, redirect, Blueprint
 
-from BestMtgDeck.BestMtgDeck.bestdeck import Deck, get_db, get_format, price_collection
+from BestMtgDeck.BestMtgDeck.bestdeck import (
+    Deck,
+    get_db,
+    get_format,
+    price_collection,
+    FORMAT_CONVERTER,
+)
 from BestMtgDeck.BestMtgDeck.format_deck import format_deck
 from BestMtgDeck.BestMtgDeck.mtg_parser import (
     BASIC_LANDS,
@@ -95,6 +101,7 @@ def show_single_format(format_name, currency="€") -> str:
         card_prices = {"€": prices_eur, "$": prices_usd}[currency]
         return render_template(
             "format.html",
+            formats=FORMAT_CONVERTER,
             format_name=format_name,
             formato=get_db(collection, get_format(format_name), card_prices),
             currency=currency,
