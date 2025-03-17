@@ -102,9 +102,9 @@ Sideboard: 1
 """,
 )
 
-tests = dict(zip(decks, results))
+formatter_examples = dict(zip(decks, results))
 
 if __name__ == "__main__":
-    for k, v in tests.items():
+    for k, v in formatter_examples.items():
         bbcode, html, cards_and_mistakes = format_deck(k, "", "", "", "", "")
         assert bbcode == v
