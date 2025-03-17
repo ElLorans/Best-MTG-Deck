@@ -7,7 +7,7 @@ import os
 import random
 import sys
 
-from flask import Flask, render_template, request, session, redirect
+from flask import Flask, render_template, request, session, redirect, url_for
 
 from BestMtgDeck.BestMtgDeck.bestdeck import Deck, get_db, get_format, price_collection
 from BestMtgDeck.BestMtgDeck.format_deck import format_deck
@@ -233,7 +233,7 @@ def page_not_found(e) -> str:
 
 @app.route("/api/tooltip.js")
 def tooltip():
-    return redirect("static/js/tooltip.js")
+    return redirect(url_for('static', filename='js/tooltip.js'))
 
 
 if __name__ == "__main__":
