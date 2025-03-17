@@ -32,8 +32,23 @@ from .database import (
 )
 from .rarity import rarity
 
-
 BASIC_LANDS = ("Forest", "Swamp", "Mountain", "Plains", "Island")
+# dictionaries are not hashable, so only strings are in format_converter
+FORMAT_CONVERTER: dict[str, dict] = {
+    "Standard": Standard,
+    "Timeless": Timeless,
+    "Brawl": Brawl,
+    "Historic": Historic,
+    "Historic Brawl": Historic_Brawl,
+    "Pioneer": Pioneer,
+    "Modern": Modern,
+    "Legacy": Legacy,
+    "Pauper": Pauper,
+    "Vintage": Vintage,
+    "Cube": Cube,
+    "Commander 1v1": Commander_1v1,
+    "Commander": Commander,
+}
 
 
 def merge(
@@ -246,27 +261,10 @@ def get_format(
     -------
     Impure Function
     """
-    # dictionaries are not hashable, so only strings are in format_converter
-    format_converter = {
-        "Standard": Standard,
-        "Timeless": Timeless,
-        "Brawl": Brawl,
-        "Historic": Historic,
-        "Pioneer": Pioneer,
-        "Modern": Modern,
-        "Legacy": Legacy,
-        "Pauper": Pauper,
-        "Vintage": Vintage,
-        "Cube": Cube,
-        "Historic Brawl": Historic_Brawl,
-        "Commander 1v1": Commander_1v1,
-        "Commander": Commander,
-    }
-
     if isinstance(stringa_or_dict, str):
-        return format_converter[stringa_or_dict]
+        return FORMAT_CONVERTER[stringa_or_dict]
 
-    for string, dictionary in format_converter.items():
+    for string, dictionary in FORMAT_CONVERTER.items():
         if dictionary == stringa_or_dict:
             return string
 
