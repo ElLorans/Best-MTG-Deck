@@ -1,5 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, SelectField
+from wtforms.fields.simple import TextAreaField
 
 
 class DeckFormatterForm(FlaskForm):
@@ -9,6 +10,7 @@ class DeckFormatterForm(FlaskForm):
     player_role = SelectField(
         "Player Role",
         choices=[
+            ("", ""),
             ("Winner", "Winner"),
             ("Finalist", "Finalist"),
             ("Top 4", "Top 4"),
@@ -17,3 +19,4 @@ class DeckFormatterForm(FlaskForm):
         ],
     )
     note_redazione = StringField("Note Redazione")
+    deck_list = TextAreaField("Deck List")

@@ -25,7 +25,7 @@
 
     <form method="POST" class="border rounded bg-light shadow pb-4">
         <h2 class="px-3">
-            <a href="{{ url_for('page_decklist_formatter') }}">
+            <a href="{{ url_for('main.page_decklist_formatter') }}">
                 Deck Formatter
             </a>
         </h2>
@@ -33,7 +33,7 @@
         <div class="d-flex flex-wrap p-4">
             <fieldset class="border p-3 flex-item p-3">
                 <legend class="px-2">Deck Info</legend>
-                {% for field in form if field.widget.input_type != 'hidden' %}
+                {% for field in form if field.widget.input_type != 'hidden' and field.type != "TextAreaField" %}
                     <div class="form-group">
                         {{ field.label }}
                         <!-- Height auto or select too short in Boostrap4 -->
@@ -43,13 +43,11 @@
             </fieldset>
 
             <div class="flex-item p-3">
-                <label for="decklist">Decklist:</label>
-                <textarea id="decklist" name="decklist" class="form-control" rows="8">
-                    {{- decklist -}}
-                </textarea>
+                {{ form.deck_list.label }}
+                {{ form.deck_list(class='form-control', rows='8') }}
                 <div class="d-flex justify-content-center">
                     <button type="button" class="btn btn-warning btn-block mt-3"
-                            onclick="document.getElementById('decklist').value = ''">
+                            onclick="document.getElementById('deck_list').value = ''">
                         Clear Deck
                     </button>
                 </div>
