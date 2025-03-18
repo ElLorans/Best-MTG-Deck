@@ -1,8 +1,8 @@
 {% extends "layout.html" %}
 {% block content %}
     {% for key in formats %}
-        <a href='/{{ key }}/{{ currency |safe }} ' > {{ key }} </a>
-    |
+        <a href='/{{ key }}/{{ currency |safe }} '> {{ key }} </a>
+        |
     {% endfor %}
 
     <br>
@@ -25,7 +25,12 @@
         </tr>
         {% for deck in formato %}
             <tr>
-                <td><a href='/calc/{{ format_name }}/{{ deck.name }}/{{ currency |safe }}'> {{ deck.name }} </a></td>
+                <td>
+                    {# need query parameters and urlencode because deck.name can include slashes #}
+                    <a href='/calc?format={{ format_name }}&deck={{ deck.name | urlencode }}&currency={{ currency |safe }}'>
+                        {{ deck.name }}
+                    </a>
+                </td>
                 <td> {{ deck.value }} </td>
                 <td> {{ deck.tot_price }} </td>
                 <td> {{ deck.your_price }} </td>

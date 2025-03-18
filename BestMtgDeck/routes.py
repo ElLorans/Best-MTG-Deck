@@ -119,13 +119,15 @@ def show_single_format(format_name, currency="€") -> str:
         return render_template("wrongformat.html", error="The url you inserted")
 
 
-@main.route(
-    "/calc/<format_name>/<deck_name>/<currency>", strict_slashes=False, methods=["GET"]
-)
-def calc(format_name, deck_name, currency) -> str:
+@main.route("/calc/", strict_slashes=False, methods=["GET"])
+def calc() -> str:
     """
     Page showing all cards of a particular deck.
     """
+    format_name = request.args.get("format")
+    deck_name = request.args.get("deck")
+    currency = request.args.get("currency")
+
     collections = load_collections()
     prices = prices_usd if currency == "$" else prices_eur
 
