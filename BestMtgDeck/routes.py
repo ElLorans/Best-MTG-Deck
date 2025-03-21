@@ -2,7 +2,7 @@ import json
 import random
 import sys
 
-from flask import render_template, request, session, redirect, Blueprint
+from flask import render_template, request, session, redirect, Blueprint, abort
 
 from BestMtgDeck.BestMtgDeck.bestdeck import (
     Deck,
@@ -81,7 +81,7 @@ def show_single_format(format_name, currency="€") -> str:
                 json.dump(collections, j)
         except (IndexError, ValueError) as err:
             mistake = str(err.args[0])
-            return render_template("wrongformat.html", error=mistake)
+            return abort(404, mistake)
 
     else:  # elif request.method == "GET":
         # retrieve collection
@@ -97,13 +97,24 @@ def show_single_format(format_name, currency="€") -> str:
         else:
             collection = BASIC_LANDS
 
+    card_prices: dict[str, float] = {"€": prices_eur, "$": prices_usd}.get(
+        currency, prices_eur
+    )
+
+    try:
+        formato = get_db(collection, get_format(format_name), card_prices)
+    except KeyError:
+        # raise 404
+        abort(
+            404,
+            f"{format_name} does not exist. The requested URL was not found on the server.",
+        )
     if currency == "€" or currency == "$":
-        card_prices = {"€": prices_eur, "$": prices_usd}[currency]
         return render_template(
             "format.html",
             formats=FORMAT_CONVERTER,
             format_name=format_name,
-            formato=get_db(collection, get_format(format_name), card_prices),
+            formato=formato,
             currency=currency,
             prices=card_prices,
         )
@@ -111,12 +122,12 @@ def show_single_format(format_name, currency="€") -> str:
         return render_template(
             "mtga_formats.html",
             format_name=format_name,
-            formato=get_db(collection, get_format(format_name), prices_eur),
+            formato=formato,
             currency=currency,
             prices=prices_eur,
         )
     else:
-        return render_template("wrongformat.html", error="The url you inserted")
+        return abort(404, error="The url you inserted does not exist.")
 
 
 @main.route("/calc/", strict_slashes=False, methods=["GET"])
@@ -159,9 +170,9 @@ def calc() -> str:
     except KeyError:
         # if user changes deck_name in url / cannot find deck
         # print(f"Error on url /calc/{format_name}/{deck_name}/{currency}: Missing Deck", file=sys.stderr)
-        return render_template(
-            "wrongformat.html",
-            error=f"{format_name} does not contain {deck_name} or does not contain {deck_name} "
+        abort(
+            404,
+            f"{format_name} does not contain {deck_name} or does not contain {deck_name} "
             f"anymore. The requested URL was not found on the server.",
         )
     except TypeError:
@@ -170,9 +181,9 @@ def calc() -> str:
             f"Error on url /calc/{format_name}/{deck_name}/{currency}: {format_name} not found",
             file=sys.stderr,
         )
-        return render_template(
-            "wrongformat.html",
-            error=f"{format_name} does not exist. The requested URL was not found on the server.",
+        return abort(
+            404,
+            f"{format_name} does not exist. The requested URL was not found on the server.",
         )
 
 
@@ -188,7 +199,7 @@ def evaluate() -> str:
     except (IndexError, ValueError) as err:
         # mistake = str(err.args[0][0])  # err.args = (["aaa"])  err.args[0] = ["aaa"]
         mistake = str(err).replace("\n", "<br>")
-        return render_template("wrongformat.html", error=mistake)
+        return abort(404, mistake)
     currency_html, prices = get_currency(request)
 
     return render_template(
@@ -223,7 +234,8 @@ def page_decklist_formatter() -> str:
 @main.errorhandler(404)
 def page_not_found(e) -> str:
     return render_template(
-        "wrongformat.html", error="The requested URL was not found on the server and"
+        "wrongformat.html",
+        error=e if e else "The requested URL was not found on the server.",
     )
 
 
