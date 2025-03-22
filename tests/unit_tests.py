@@ -1,3 +1,13 @@
+# prevent ModuleNotFoundError
+import os
+import sys
+
+# Get the absolute path of the project root
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+
+# Add it to sys.path
+sys.path.insert(0, project_root)
+
 import re
 import unittest
 
@@ -126,3 +136,7 @@ class TestBestMtgDeck(BaseTestCase):
                 self.app.config["PAYPAL_LINK"] in response.data.decode("utf-8"),
                 f"Failed at {url}: Paypal link found in page. Maybe not set in secrets.env",
             )
+
+
+if __name__ == "__main__":
+    unittest.main()
