@@ -22,9 +22,8 @@ from tests.formatter_examples import formatter_examples
 
 class BaseTestCase(unittest.TestCase):
     def setUp(self) -> None:
-        # load dotenv from parent folder
-        dotenv_path = find_dotenv("../secrets.env")
-        load_dotenv(dotenv_path)
+        # load dotenv from parent folder irrespective of from where the test is run
+        load_dotenv(os.path.join(project_root, "secrets.env"))
         self.app = create_app()
         self.app_context = self.app.test_request_context()
         self.app_context.push()
@@ -43,18 +42,19 @@ class TestBestMtgDeck(BaseTestCase):
             "/value",
         )
         for url in urls:
-            response = self.client.get(url)
+            with self.client.get(url) as response:
+                status_code = response.status_code
             self.assertEqual(
-                response.status_code,
+                status_code,
                 200,
-                f"Failed at {url}: Expected 200, got {response.status_code}",
+                f"Failed at {url}: Expected 200, got {status_code}",
             )
 
     def test_api(self):
-        response = self.client.get("/api/tooltip.js")
-        self.assertEqual(response.status_code, 302)
-        response = self.client.get("/static/js/tooltip.js")
-        self.assertEqual(response.status_code, 200)
+        with self.client.get("/api/tooltip.js") as response:
+            self.assertEqual(response.status_code, 302)
+        with self.client.get("/static/js/tooltip.js") as response:
+            self.assertEqual(response.status_code, 200)
 
     def test_deck_formatter_post(self):
         response = self.client.post(
@@ -79,7 +79,8 @@ class TestBestMtgDeck(BaseTestCase):
         for currency in ("$", "€"):
             for format_name in FORMAT_CONVERTER:
                 format_url = f"/{format_name}/{currency}"
-                response = self.client.get(format_url)
+                with self.client.get(format_url) as resp:
+                    response = resp
                 self.assertEqual(
                     response.status_code,
                     200,
@@ -100,12 +101,12 @@ class TestBestMtgDeck(BaseTestCase):
                 )
                 for link in links:
                     with self.subTest(link=link):
-                        response = self.client.get(link)
-                        self.assertEqual(
-                            response.status_code,
-                            200,
-                            f"Failed at {link}: Expected 200, got {response.status_code}",
-                        )
+                        with self.client.get(link) as response:
+                            self.assertEqual(
+                                response.status_code,
+                                200,
+                                f"Failed at {link}: Expected 200, got {response.status_code}",
+                            )
 
     def test_404(self):
         urls = (
@@ -115,27 +116,25 @@ class TestBestMtgDeck(BaseTestCase):
             "/calc?format=Standard&deck=Grul%20Aggro&currency=€",
         )
         for url in urls:
-            response = self.client.get(url)
-            resp = response.data.decode("utf-8")
-            self.assertTrue(
-                "The requested URL was not found on the server" in resp,
-                f"Failed at {url}: no The requested URL was not found on the server in {resp}",
-            )
-            self.assertEqual(
-                response.status_code,
-                404,
-                f"Failed at {url}: Expected 404 got {response.status_code}",
-            )
+            with self.client.get(url) as response:
+                resp = response.data.decode("utf-8")
+                self.assertTrue(
+                    "The requested URL was not found on the server" in resp,
+                    f"Failed at {url}: no The requested URL was not found on the server in {resp}",
+                )
+                self.assertEqual(
+                    response.status_code,
+                    404,
+                    f"Failed at {url}: Expected 404 got {response.status_code}",
+                )
 
     def test_paypal_link(self):
         for url in ("/", "/sign", "/value"):
-            response = self.client.get(url)
-            # get self paypal link
-
-            self.assertTrue(
-                self.app.config["PAYPAL_LINK"] in response.data.decode("utf-8"),
-                f"Failed at {url}: Paypal link found in page. Maybe not set in secrets.env",
-            )
+            with self.client.get(url) as response:
+                self.assertTrue(
+                    self.app.config["PAYPAL_LINK"] in response.data.decode("utf-8"),
+                    f"Failed at {url}: Paypal link found in page. Maybe not set in secrets.env",
+                )
 
 
 if __name__ == "__main__":
