@@ -232,10 +232,13 @@ def page_decklist_formatter() -> str:
 
 
 @main.errorhandler(404)
-def page_not_found(e) -> str:
-    return render_template(
-        "wrongformat.html",
-        error=e if e else "The requested URL was not found on the server.",
+def page_not_found(e):
+    return (
+        render_template(
+            "wrongformat.html",
+            error=e if e else "The requested URL was not found on the server.",
+        ),
+        404,
     )
 
 
