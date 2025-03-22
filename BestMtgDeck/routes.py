@@ -2,7 +2,7 @@ import json
 import random
 import sys
 
-from flask import render_template, request, session, redirect, Blueprint, abort
+from flask import render_template, request, session, redirect, Blueprint, abort, url_for
 
 from BestMtgDeck.BestMtgDeck.bestdeck import (
     Deck,
@@ -244,4 +244,4 @@ def page_not_found(e):
 
 @main.route("/api/tooltip.js")
 def tooltip():
-    return redirect("static/js/tooltip.js")
+    return redirect(url_for("static", filename="js/tooltip.js"))
