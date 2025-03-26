@@ -104,12 +104,12 @@ Sideboard: 1
 [/td][/tr][/table]
 """,
     """[table][tr][td3][b][/b] by  [/td3][/tr]
-[tr][td]Lands (1):
-1 [card]Darksteel Citadel[/card]
+[tr][td]Artifacts (1):
+1 [card]Mox Opal[/card]
 [/td][td]
 
-Artifacts (1):
-1 [card]Mox Opal[/card]
+Lands (1):
+1 [card]Darksteel Citadel[/card]
 
 [/td]
 [td]
