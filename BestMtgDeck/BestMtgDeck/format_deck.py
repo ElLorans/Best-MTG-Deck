@@ -126,7 +126,7 @@ def analyse_cards_and_mistakes(list_str: list[str]) -> list[Line]:
 
 def group_by_mtg_type(list_lines: list[Line]) -> dict[str, list[int, str]]:
     """
-    Return dict with lists of 2 elems: # cards and lines.
+    Return unsorted dict with lists of 2 elems: # cards and lines.
     """
     cards_by_types = dict()
     sideboard = False
@@ -166,7 +166,7 @@ def dict_to_bbcode(
     # sort card_types
     ordered_card_types = {
         mtg_type: mtg_card_types[mtg_type]
-        for mtg_type in ORDERED_MTG_PLURAL_TYPES
+        for mtg_type in CAPITALIZED_ORDERED_MTG_PLURAL_TYPES
         if mtg_type in mtg_card_types
     }
     # get weird remaining types
@@ -301,7 +301,7 @@ def remove_mtg_types(list_str: list) -> list:
 
 def get_type(card: str) -> str:
     """
-    Return simplified type of MTG card.
+    Return simplified type of MTG card. If cards has multiple types, the first in PRETTY_TIPES' order is returned.
     """
     card_type = card_types.get(card, "other").lower()
     if card_type in PRETTY_TYPES:

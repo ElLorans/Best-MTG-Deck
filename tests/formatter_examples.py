@@ -43,16 +43,16 @@ results: tuple[str, ...] = (
 4 [card]Deathrite Shaman[/card]
 4 [card]Knight of the Reliquary[/card]
 
-Lands (2):
-1 [card]Bayou[/card]
-1 [card]Forest[/card]
+Enchantments (1):
+1 [card]Sylvan Library[/card]
 [/td][td]
 
 Artifacts (1):
 1 [card]Sword of Fire and Ice[/card]
 
-Enchantments (1):
-1 [card]Sylvan Library[/card]
+Lands (2):
+1 [card]Bayou[/card]
+1 [card]Forest[/card]
 
 [/td]
 [td]
@@ -69,21 +69,21 @@ Sideboard: 1
 [/td][/tr][/table]
 """,
     """[table][tr][td3][b][/b] by  [/td3][/tr]
-[tr][td]Planeswalkers (3):
-2 [card]Xenagos, the Reveler[/card]
-1 [card]Nissa, Worldwaker[/card]
-
-Creatures (5):
+[tr][td]Creatures (5):
 3 [card]Genesis Hydra[/card]
 2 [card]Stormbreath Dragon[/card]
 
 Sorceries (2):
 2 [card]Crater's Claws[/card]
-[/td][td]
 
 Instants (4):
 3 [card]Lightning Strike[/card]
 1 [card]Wild Slash[/card]
+[/td][td]
+
+Planeswalkers (3):
+2 [card]Xenagos, the Reveler[/card]
+1 [card]Nissa, Worldwaker[/card]
 
 Lands (12):
 8 [card]Forest[/card]
@@ -130,5 +130,5 @@ formatter_examples = dict(zip(decks, results))
 if __name__ == "__main__":
     for k, v in formatter_examples.items():
         bbcode, html, cards_and_mistakes = format_deck(k, "", "", "", "", "")
-        assert bbcode == v
-        breakpoint()
+        if bbcode != v:
+            breakpoint()
