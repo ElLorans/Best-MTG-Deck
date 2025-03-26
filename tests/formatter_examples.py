@@ -32,6 +32,9 @@ Land (12)
 26 Cards
 Sideboard (1)
 1 Hornet Queen""",
+    """
+    1 darksteel citadel
+    1 mox opal""",
 )
 
 results: tuple[str, ...] = (
@@ -100,6 +103,26 @@ Main Deck: 26
 Sideboard: 1
 [/td][/tr][/table]
 """,
+    """[table][tr][td3][b][/b] by  [/td3][/tr]
+[tr][td]Lands (1):
+1 [card]Darksteel Citadel[/card]
+[/td][td]
+
+Artifacts (1):
+1 [card]Mox Opal[/card]
+
+[/td]
+[td]
+
+[/td][/tr]
+
+[tr][td2][i]ndr.[/i]
+-[/td2]
+[td]Details
+Main Deck: 2
+Sideboard: 0
+[/td][/tr][/table]
+""",
 )
 
 formatter_examples = dict(zip(decks, results))
@@ -108,3 +131,4 @@ if __name__ == "__main__":
     for k, v in formatter_examples.items():
         bbcode, html, cards_and_mistakes = format_deck(k, "", "", "", "", "")
         assert bbcode == v
+        breakpoint()

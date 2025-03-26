@@ -23,6 +23,7 @@ def get_plural(stringa: str) -> str:
     return stringa + "s"
 
 
+# order in which cards will be displayed
 ORDERED_MTG_TYPES: tuple[str, ...] = (
     "creature",
     "sorcery",
@@ -46,7 +47,12 @@ FROZENSET_MTG_PLURAL_TYPES = frozenset(ORDERED_MTG_PLURAL_TYPES)
 CAPITALIZED_ORDERED_MTG_PLURAL_TYPES = tuple(
     get_plural(t).capitalize() for t in ORDERED_MTG_TYPES
 )
-PRETTY_TYPES = dict(zip(ORDERED_MTG_TYPES, CAPITALIZED_ORDERED_MTG_PLURAL_TYPES))
+
+# set order of precedence when card has multiple types
+# e.g. Darksteel Citadel is "Artifact Land" but we want to consider it as a land
+# so ensure land comes before artifact in PRETTY_TYPES
+PRETTY_TYPES = {"land": get_plural("land")}
+PRETTY_TYPES.update(dict(zip(ORDERED_MTG_TYPES, CAPITALIZED_ORDERED_MTG_PLURAL_TYPES)))
 
 
 def capitalize_word(words: str) -> str:
