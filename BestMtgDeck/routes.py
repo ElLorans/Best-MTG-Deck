@@ -102,13 +102,14 @@ def show_single_format(format_name, currency="€") -> str:
     )
 
     try:
-        formato = get_db(collection, get_format(format_name), card_prices)
+        formato = get_format(format_name)
     except KeyError:
         # raise 404
         abort(
             404,
             f"{format_name} does not exist. The requested URL was not found on the server.",
         )
+    formato = get_db(collection, formato, card_prices)
     if currency == "€" or currency == "$":
         return render_template(
             "format.html",

@@ -101,7 +101,7 @@ def get_card_price(card_lower: str, card_prices: dict) -> float:
         )
     except KeyError:
         card_price = 0.0
-        print(card_lower)
+        print("Missing price:", card_lower)
     return card_price
 
 
@@ -130,7 +130,7 @@ class Deck:
         self.mainboard = mainboard  # dict
         if sideboard is None:
             if get_sideboard_dict(format_name) is not None:
-                self.sideboard = get_sideboard_dict(format_name)[name]
+                self.sideboard = get_sideboard_dict(format_name).get(name, None)
             else:
                 self.sideboard = None
         if format_name in (
@@ -187,7 +187,11 @@ class Deck:
                 # self.wc[rarity[card]] += self.total[card]  # if lands missing, use next comment
                 # add to rarity: {'Forest': "Basic Land", 'Swamp': "Basic Land", 'Mountain': "Basic Land",
                 # 'Plains': "Basic Land", 'Island': "Basic Land"}
-                card_rarity = rarity.get(card, rarity[card.split(" // ")[0]])
+                try:
+                    card_rarity = rarity.get(card, rarity[card.split(" // ")[0]])
+                except KeyError:
+                    print("Missing rarity:", card)
+                    card_rarity = "Rare"
                 self.wc[card_rarity] += self.total[card]
 
             if card_lower in coll_dict:
@@ -237,7 +241,11 @@ class Deck:
             temp["tot_price"] = round(temp["copies_total"] * card_price, 2)
 
             if self.arena is True:
-                temp["wildcards"] = rarity.get(card, rarity[card.split(" // ")[0]])
+                try:
+                    temp["wildcards"] = rarity.get(card, rarity[card.split(" // ")[0]])
+                except KeyError:
+                    print("Missing rarity:", card)
+                    temp["wildcards"] = "Rare"
             info.append(temp)
         return info
 
