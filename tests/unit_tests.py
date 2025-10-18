@@ -11,7 +11,7 @@ sys.path.insert(0, project_root)
 import re
 import unittest
 
-from dotenv import load_dotenv, find_dotenv
+from dotenv import load_dotenv
 
 from BestMtgDeck.BestMtgDeck.bestdeck import FORMAT_CONVERTER
 from BestMtgDeck.BestMtgDeck.format_deck import format_deck
