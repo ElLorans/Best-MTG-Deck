@@ -203,7 +203,10 @@ class Deck:
 
                 if self.arena is True and card not in BASIC_LANDS:
                     # reduce wc needed if you have card in coll_dict by min(cards needed, cards in coll_dict)
-                    self.wc[rarity[card]] -= minimum
+                    try:
+                        self.wc[rarity[card]] -= minimum
+                    except KeyError:
+                        self.wc[rarity[card.split(" // ", 1)[0]]] -= minimum
 
         self.price = int(self.price)  # solve Python weird numbers
         self.cards_you_need = self.cards - self.your_cards
