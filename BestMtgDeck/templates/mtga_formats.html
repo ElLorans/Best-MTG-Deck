@@ -1,15 +1,15 @@
 {% extends "layout.html" %}
 {% block content %}
 
-    <a href='/Standard/{{ currency |safe }} ' > Standard </a>
+    <a href='/Standard/{{ currency |safe }} '> Standard </a>
     |
-    <a href='/Timeless/{{ currency |safe }} ' > Timeless </a>
+    <a href='/Timeless/{{ currency |safe }} '> Timeless </a>
     |
-     <a href='/Historic/{{ currency |safe }} ' > Historic </a>
+    <a href='/Historic/{{ currency |safe }} '> Historic </a>
     |
-     <a href='/Brawl/{{ currency |safe }} ' > Brawl </a>
+    <a href='/Brawl/{{ currency |safe }} '> Brawl </a>
     |
-     <a href='/Historic Brawl/{{ currency |safe }} ' > Historic Brawl </a>
+    <a href='/Historic Brawl/{{ currency |safe }} '> Historic Brawl </a>
 
     <br>
     <br>
@@ -32,7 +32,12 @@
         </tr>
         {% for deck in formato %}
             <tr>
-                <td><a href='/calc/{{ format_name }}/{{ deck.name }}/{{ currency |safe }}'> {{ deck.name }} </a></td>
+                <td>
+                    {# need query parameters and urlencode because deck.name can include slashes #}
+                    <a href='/calc?format={{ format_name }}&deck={{ deck.name | urlencode }}&currency={{ currency |safe }}'>
+                        {{ deck.name }}
+                    </a>
+                </td>
                 <td> {{ deck["wc"]["Mythic"] }} </td>
                 <td> {{ deck["wc"]["Rare"] }} </td>
                 <td> {{ deck["wc"]["Uncommon"] }} </td>
