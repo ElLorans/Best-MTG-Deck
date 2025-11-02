@@ -76,7 +76,7 @@ class TestBestMtgDeck(BaseTestCase):
             self.assertEqual(bbcode, v)
 
     def test_all_decks(self):
-        for currency in ("$", "€"):
+        for currency in ("$", "€", "mtga"):
             for format_name in FORMAT_CONVERTER:
                 format_url = f"/{format_name}/{currency}"
                 with self.client.get(format_url) as resp:
